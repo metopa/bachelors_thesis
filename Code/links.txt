@@ -1,0 +1,1 @@
+http://stackoverflow.com/questions/9242234/c11-variadic-stdfunction-parameter std::result_of
