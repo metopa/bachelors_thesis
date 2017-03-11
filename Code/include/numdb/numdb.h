@@ -12,7 +12,9 @@
 #include <experimental/tuple> //std::experimental::apply
 
 //TODO Deduce a default value for UserFuncArgTupleT
-template<typename EventCounterT,
+template<
+		bool ThreadSafe,
+		typename EventCounterT,
 		typename UserFuncT,
 		typename UserFuncArgsTupleT /*=deduced arguments of UserFuncT*/>
 class FunctionCache {
@@ -21,6 +23,8 @@ class FunctionCache {
 	typedef std::result_of<UserFuncT> return_t;
 	typedef UserFuncArgsTupleT args_tuple_t;
 	typedef EventCounterT event_counter_t;
+
+	static constexpr bool is_threadsafe() { return ThreadSafe; }
 
 	event_counter_t& getEventCounter() {
 		return event_counter_;
@@ -40,7 +44,7 @@ class FunctionCache {
 		return std::experimental::apply(user_func_, std::move(args));
 	}
 
-	template <typename... Args>
+	template<typename... Args>
 	static void argsConvertibleCheck() {
 		static_assert(std::is_convertible<
 							  std::tuple<Args...>, args_tuple_t
