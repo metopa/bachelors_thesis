@@ -13,7 +13,7 @@
 #include "numdb.h"
 #include "event_counter.h"
 
-template<
+template <
 		typename UserFuncT,
 		typename UserFuncArgsTupleT,
 		typename EventCounterT = EmptyEventCounter

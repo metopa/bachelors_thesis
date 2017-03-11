@@ -16,5 +16,4 @@ struct BenchProfile {
 };
 
 
-
 #endif //NUMDB_BENCH_H

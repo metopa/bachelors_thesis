@@ -9,9 +9,9 @@
 #include <numdb/numdb.h>
 
 
-template<int N, typename Result>
+template <int N, typename Result>
 struct Fibonacci {
-	template<typename... Args>
+	template <typename... Args>
 	Result operator ()(Args...) {
 		volatile int n = N;
 		n = fibonacciImpl(n);
