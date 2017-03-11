@@ -1,4 +1,4 @@
-/** numdb.h
+/** @file numdb.h
  *  @brief
  *
  *  @author Viacheslav Kroilov (metopa) slavakroilov@gmail.com

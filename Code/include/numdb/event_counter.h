@@ -1,4 +1,4 @@
-/** event_counter.h
+/** @file event_counter.h
  *  @brief This structure is used for measuring different metrics, like total count of retrieves, number of user function calls, etc.
  *
  *  @author Viacheslav Kroilov (metopa) slavakroilov@gmail.com

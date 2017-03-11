@@ -1,4 +1,4 @@
-/** dummy_engine.h
+/** @file dummy_engine.h
  *  @brief
  *
  *  @author Viacheslav Kroilov (metopa) slavakroilov@gmail.com
