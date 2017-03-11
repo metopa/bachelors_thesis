@@ -1,4 +1,4 @@
-/** bench.h
+/** @file bench.h
  *  @brief
  *
  *  @author Viacheslav Kroilov (metopa) slavakroilov@gmail.com
