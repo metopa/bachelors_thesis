@@ -40,6 +40,14 @@ class FunctionCache {
 		return std::experimental::apply(user_func_, std::move(args));
 	}
 
+	template <typename... Args>
+	static void argsConvertibleCheck() {
+		static_assert(std::is_convertible<
+							  std::tuple<Args...>, args_tuple_t
+					  >::value,
+					  "Cannot convert provided arguments.");
+	}
+
   private:
 	user_func_t user_func_;
 	event_counter_t event_counter_;
