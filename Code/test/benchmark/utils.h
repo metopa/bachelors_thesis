@@ -1,4 +1,4 @@
-/** util.h
+/** @file util.h
  *  @brief
  *
  *  @author Viacheslav Kroilov (metopa) slavakroilov@gmail.com
@@ -15,6 +15,7 @@
  * @param element_count
  * @return
  */
+
 double computeSigma(double area, size_t element_count) {
 	boost::math::normal N01;  // 'Standard' normal distribution with zero mean
 	double q = boost::math::quantile(N01, 0.5 + area / 2);
