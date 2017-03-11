@@ -1,1 +1,3 @@
 http://stackoverflow.com/questions/9242234/c11-variadic-stdfunction-parameter std::result_of
+http://www.boost.org/doc/libs/1_42_0/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/normal_example/normal_misc.html normal distribution cdf
+http://www.boost.org/doc/libs/1_63_0/libs/math/doc/html/math_toolkit/dist_ref/nmp.html#math_toolkit.dist_ref.nmp.quantile quantile
