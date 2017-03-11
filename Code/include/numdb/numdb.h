@@ -7,27 +7,43 @@
 #ifndef NUMDB_NUMDB_H
 #define NUMDB_NUMDB_H
 
-
-#include <type_traits>
 #include <tuple>
+#include <type_traits>
+#include <experimental/tuple> //std::experimental::apply
 
-template<typename Engine, typename UserFunc, typename... UserFuncArgs>
+//TODO Deduce a default value for UserFuncArgTupleT
+template<typename EventCounterT,
+		typename UserFuncT,
+		typename UserFuncArgsTupleT /*=deduced arguments of UserFuncT*/>
 class FunctionCache {
   public:
-	typedef UserFunc user_func_t;
-	typedef std::result_of return_t;
-	typedef std::tuple<UserFuncArgs> args_tuple_t;
+	typedef UserFuncT user_func_t;
+	typedef std::result_of<UserFuncT> return_t;
+	typedef UserFuncArgsTupleT args_tuple_t;
+	typedef EventCounterT event_counter_t;
 
-	template<typename... EngineCtorArgs>
-	FunctionCache(EngineCtorArgs&&... engine_args) :
-			engine_(std::forward<EngineCtorArgs>(engine_args)...) {}
+	event_counter_t& getEventCounter() {
+		return event_counter_;
+	}
 
-	return_t retrieve(UserFuncArgs&&... args) {
-		return engine_.retrieve(std::forward<UserFuncArgs>(args)...);
+  protected:
+	FunctionCache(user_func_t&& user_func) :
+			user_func_(std::move(user_func)) {}
+
+	~FunctionCache() = default;
+
+	FunctionCache(const FunctionCache&) = delete;
+	FunctionCache& operator =(const FunctionCache&) = delete;
+
+	return_t invokeUserFunc(args_tuple_t&& args) {
+		event_counter_.user_func_calls++;
+		return std::experimental::apply(user_func_, std::move(args));
 	}
 
   private:
-	Engine engine_;
+	user_func_t user_func_;
+	event_counter_t event_counter_;
 };
 
 #endif //NUMDB_NUMDB_H
+
