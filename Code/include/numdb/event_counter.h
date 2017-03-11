@@ -10,17 +10,30 @@
 #include <cstdint>
 #include <ostream> //TODO Replace with <iosfwd>
 
-struct EventCounter {
-	uint64_t total_retrieves = 0;
-	uint64_t user_func_calls = 0;
+struct EmptyEventCounter {
+	void retrieve() {}
+	void invokeUserFunc() {}
+};
 
-	double cacheEfficiency() const {
-		return 1 - static_cast<double>(user_func_calls) / total_retrieves;
+struct BasicEventCounter {
+	uint64_t total_retrieves = 0;
+	uint64_t user_func_invocations = 0;
+
+	void retrieve() {
+		total_retrieves++;
 	}
 
-	friend std::ostream& operator<<(std::ostream& out, const EventCounter& ec) {
+	void invokeUserFunc() {
+		user_func_invocations++;
+	}
+
+	double cacheEfficiency() const {
+		return 1 - static_cast<double>(user_func_invocations) / total_retrieves;
+	}
+
+	friend std::ostream& operator <<(std::ostream& out, const BasicEventCounter& ec) {
 		return out << "Total: " << ec.total_retrieves << std::endl
-				   << "User func calls: " << ec.user_func_calls << std::endl
+				   << "User func calls: " << ec.user_func_invocations << std::endl
 				   << "Cache efficiency: " << ec.cacheEfficiency() << std::endl;
 	}
 };
