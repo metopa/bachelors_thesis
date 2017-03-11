@@ -11,23 +11,22 @@
 #include <type_traits>
 
 #include "numdb.h"
+#include "event_counter.h"
 
-template<typename EventCounterT,
+template<
 		typename UserFuncT,
-		typename... UserFuncArgsT>
+		typename UserFuncArgsTupleT,
+		typename EventCounterT = EmptyEventCounter
+>
 class DummyFunctionCache :
-		FunctionCache<false, EventCounterT, UserFuncT, UserFuncArgsT...> {
+		FunctionCache<false, UserFuncT, UserFuncArgsTupleT, EventCounterT> {
   public:
-	typedef UserFuncT user_func_t;
-	typedef std::result_of<UserFuncT> return_t;
-	typedef std::tuple<UserFuncArgsT> args_tuple_t;
-
 	DummyFunctionCache(user_func_t user_func, size_t /*available_memory*/ = 0) :
 			FunctionCache(std::move(user_func)) {}
 
-	return_t operator() (UserFuncArgsT&& ... args) {
-		argsConvertibleCheck<UserFuncArgsT...>();
-		getEventCounter().total_retrieves++;
+	return_t operator ()(UserFuncArgsTupleT&& ... args) {
+		argsConvertibleCheck<UserFuncArgsTupleT...>();
+		getEventCounter().invokeUserFunc();
 		return invokeUserFunc(std::forward_as_tuple(args...));
 	}
 

@@ -14,9 +14,9 @@
 //TODO Deduce a default value for UserFuncArgTupleT
 template<
 		bool ThreadSafe,
-		typename EventCounterT,
 		typename UserFuncT,
-		typename UserFuncArgsTupleT /*=deduced arguments of UserFuncT*/>
+		typename UserFuncArgsTupleT, /*=deduced arguments of UserFuncT*/
+		typename EventCounterT>
 class FunctionCache {
   public:
 	typedef UserFuncT user_func_t;
@@ -24,7 +24,7 @@ class FunctionCache {
 	typedef UserFuncArgsTupleT args_tuple_t;
 	typedef EventCounterT event_counter_t;
 
-	static constexpr bool is_threadsafe() { return ThreadSafe; }
+	static constexpr bool is_threadsafe() {return ThreadSafe;}
 
 	event_counter_t& getEventCounter() {
 		return event_counter_;
@@ -40,7 +40,7 @@ class FunctionCache {
 	FunctionCache& operator =(const FunctionCache&) = delete;
 
 	return_t invokeUserFunc(args_tuple_t&& args) {
-		event_counter_.user_func_calls++;
+		event_counter_.retrieve();
 		return std::experimental::apply(user_func_, std::move(args));
 	}
 
