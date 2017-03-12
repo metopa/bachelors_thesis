@@ -33,9 +33,9 @@ class DummyFunctionCache {
 
 	template <typename... Args>
 	auto operator ()(Args&& ... args) {
-		checkArgsCanBeConvertedIntoTuple<
-				typename core_t::args_tuple_t,
-				Args...>();
+		static_assert(std::is_convertible<std::tuple<Args...>, typename core_t::args_tuple_t>::value,
+					  "Cannot convert provided arguments.");
+
 		core_.getEventCounter().invokeUserFunc();
 		return core_.invokeUserFunc(std::forward_as_tuple(args...));
 	}
