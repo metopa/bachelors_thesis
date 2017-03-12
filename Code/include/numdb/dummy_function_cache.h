@@ -10,17 +10,20 @@
 #include <tuple>
 #include <type_traits>
 
+#include <function_traits/functional_unwrap.hpp>
+
 #include "function_cache_core.h"
 #include "event_counter.h"
 #include "utils.h"
 
 template <
 		typename UserFuncT,
-		typename UserFuncArgsTupleT,
-		typename EventCounterT = EmptyEventCounter
+		typename EventCounterT = EmptyEventCounter,
+		typename UserFuncArgsTupleT = fu::argument_tuple_type_of_t<UserFuncT>
 >
 class DummyFunctionCache {
-	using core_t = FunctionCacheCore<UserFuncT, UserFuncArgsTupleT, EventCounterT>;
+	using core_t = FunctionCacheCore<UserFuncT,
+			UserFuncArgsTupleT, EventCounterT>;
   public:
 	static constexpr bool is_threadsafe() { return false; }
 
@@ -29,7 +32,7 @@ class DummyFunctionCache {
 			core_(std::move(user_func)) {}
 
 	template <typename... Args>
-	auto operator ()(Args&&... args) {
+	auto operator ()(Args&& ... args) {
 		checkArgsCanBeConvertedIntoTuple<
 				typename core_t::args_tuple_t,
 				Args...>();
@@ -37,7 +40,7 @@ class DummyFunctionCache {
 		return core_.invokeUserFunc(std::forward_as_tuple(args...));
 	}
   private:
-	 core_t core_;
+	core_t core_;
 };
 
 #endif //NUMDB_DUMMY_FUNCTION_CACHE_H

@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <experimental/tuple> //std::experimental::apply
 
-//TODO Deduce a default value for UserFuncArgTupleT
+
 template <
 		typename UserFuncT,
 		typename UserFuncArgsTupleT, /*=deduced arguments of UserFuncT*/
