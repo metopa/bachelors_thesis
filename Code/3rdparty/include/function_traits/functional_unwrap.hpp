@@ -73,9 +73,21 @@ namespace fu {
 				: unwrap_function_impl<_RTy(_ATy...)> {
 		};
 
+		/// Function pointers
+		template <typename _RTy, typename... _ATy>
+		struct unwrap_function_impl<_RTy(*)(_ATy...)>
+				: unwrap_function_impl<_RTy(_ATy...)> {
+		};
+
 		/// Class Method pointers
 		template <typename _CTy, typename _RTy, typename... _ATy>
 		struct unwrap_function_impl<_RTy(_CTy::*)(_ATy...) const>
+				: unwrap_function_impl<_RTy(_ATy...)> {
+		};
+
+		/// Class Method pointers
+		template <typename _CTy, typename _RTy, typename... _ATy>
+		struct unwrap_function_impl<_RTy(_CTy::*)(_ATy...)>
 				: unwrap_function_impl<_RTy(_ATy...)> {
 		};
 
