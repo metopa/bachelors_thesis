@@ -14,7 +14,6 @@
 
 //TODO Deduce a default value for UserFuncArgTupleT
 template <
-		bool ThreadSafe,
 		typename UserFuncT,
 		typename UserFuncArgsTupleT, /*=deduced arguments of UserFuncT*/
 		typename EventCounterT>
@@ -40,14 +39,6 @@ class FunctionCacheCore {
 	auto invokeUserFunc(UserFuncArgsTupleT&& args) {
 		event_counter_.retrieve();
 		return std::experimental::apply(user_func_, std::move(args));
-	}
-
-	template <typename... Args>
-	static void argsConvertibleCheck() {
-		static_assert(std::is_convertible<
-							  std::tuple<Args...>, UserFuncArgsTupleT
-					  >::value,
-					  "Cannot convert provided arguments.");
 	}
 
   private:
