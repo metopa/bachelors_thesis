@@ -31,6 +31,14 @@ class DummyFunctionCache {
 					   size_t /*available_memory*/ = 0) :
 			core_(std::move(user_func)) {}
 
+	size_t capacity() const {
+		return 1;
+	}
+
+	EventCounterT& eventCounter() {
+		return core_.getEventCounter();
+	}
+
 	template <typename... Args>
 	auto operator ()(Args&& ... args) {
 		static_assert(std::is_convertible<std::tuple<Args...>, typename core_t::args_tuple_t>::value,
