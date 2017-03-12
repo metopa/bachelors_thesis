@@ -1,7 +1,7 @@
 /** @file dummy_engine.h
  *  @brief
  *
- *  @author Viacheslav Kroilov (metopa) slavakroilov@gmail.com
+ *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
 #ifndef NUMDB_DUMMY_FUNCTION_CACHE_H

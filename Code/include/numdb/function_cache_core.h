@@ -2,7 +2,7 @@
  *  @brief The following class contains common code for all function caches.
  *  @details It is designed to be a class member of another class. Other function classes could be derived from this class, but it brings some problems with typedefs and calling members of the base class (one is forced to specify the base class with all template arguments).
  *
- *  @author Viacheslav Kroilov (metopa) slavakroilov@gmail.com
+ *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
 #ifndef NUMDB_NUMDB_H

@@ -1,7 +1,7 @@
 /** @file main.cpp
  *  @brief
  *
- *  @author Viacheslav Kroilov (metopa) slavakroilov@gmail.com
+ *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
 

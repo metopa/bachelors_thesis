@@ -1,7 +1,7 @@
 /** @file utils.h
  *  @brief
  *
- *  @author Viacheslav Kroilov (metopa) slavakroilov@gmail.com
+ *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
 #ifndef NUMDB_UTILS_H
