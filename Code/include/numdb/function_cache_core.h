@@ -5,8 +5,8 @@
  *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
-#ifndef NUMDB_NUMDB_H
-#define NUMDB_NUMDB_H
+#ifndef NUMDB_FUNCTION_CACHE_CORE_H
+#define NUMDB_FUNCTION_CACHE_CORE_H
 
 #include <tuple>
 #include <type_traits>
@@ -46,5 +46,5 @@ class FunctionCacheCore {
 	EventCounterT event_counter_;
 };
 
-#endif //NUMDB_NUMDB_H
+#endif //NUMDB_FUNCTION_CACHE_CORE_H
 
