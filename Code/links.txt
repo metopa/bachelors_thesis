@@ -4,3 +4,5 @@ http://www.boost.org/doc/libs/1_63_0/libs/math/doc/html/math_toolkit/dist_ref/nm
 https://github.com/google/benchmark benchmarking framework
 http://aherrmann.github.io/programming/2016/02/28/unpacking-tuples-in-cpp14/ tuple unpacking
 http://en.cppreference.com/w/cpp/experimental/apply apply
+http://stackoverflow.com/questions/7943525/is-it-possible-to-figure-out-the-parameter-type-and-return-type-of-a-lambda function traits
+https://gist.github.com/Naios/86ccea2f577172c9f8b5 function traits
