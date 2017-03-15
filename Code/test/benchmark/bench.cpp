@@ -11,48 +11,52 @@
 #include "numdb/numdb.h"
 #include "utils.h"
 
-
-template <int N, typename Result, typename... Args>
-struct Fibonacci {
-	Result operator ()(Args...) {
-		volatile int n = N;
-		n = fibonacciImpl(n);
-		return n;
-	}
-  private:
-	int fibonacciImpl(int n) {
-		return n <= 2 ? 1 : fibonacciImpl(n - 1) + fibonacciImpl(n - 2);
-	}
-};
-
+/**
+ * @arg state.range(0) argument for a Fibonacci function
+ * @arg state.range(1) available memory (in KiB)
+ * @arg state.range(2) desired area under curve (in percents)
+ */
 void BM_DummyCache(benchmark::State& state) {
-	DummyFunctionCache<
-			Fibonacci<20, int, double, double>,
-			std::tuple<double, double>,
-			BasicEventCounter> cache((Fibonacci<20, int, double, double>()));
+	using UserFunc = Fibonacci<int, double, double>;
+	size_t mem = static_cast<size_t>(state.range(1));
+	mem *= 1024;
+	size_t max_element_capacity = mem / UserFunc::aggregatedArgSize();
+	double area = state.range(2);
+	area /= 100;
 
-/*	std::random_device r;
+	std::random_device r;
+	std::mt19937 e(r());
 
-	// Choose a random mean between 1 and 6
-	std::mt19937 e2(r());
-	std::normal_distribution<double> normal_dist
-			(0, computeSigma(static_state.range(1), state.range(0)));*/
+	double sigma = computeSigma(area, max_element_capacity);
+	std::normal_distribution<double> dist(0, sigma);
+
+	DummyFunctionCache<UserFunc, BasicEventCounter>
+			cache(UserFunc(state.range(0)), mem);
 
 	while (state.KeepRunning()) {
-		cache(1, 2);
+		volatile double a = dist(e);
+		volatile double b = dist(e);
+		benchmark::DoNotOptimize(cache(a, b));
 	}
+
+	state.SetItemsProcessed(state.iterations());
+	state.counters["capacity"] = max_element_capacity;
+	state.counters["overhead"] = 0;
+	state.counters["direct calls [%]"] =
+			cache.eventCounter().user_func_invocations / (double) state.iterations() * 100;
 }
 
 
-void BM_FibII(benchmark::State& state) {
+void BM_Fib(benchmark::State& state) {
 	while (state.KeepRunning()) {
-		benchmark::DoNotOptimize(Fibonacci<20, int>()());
+		benchmark::DoNotOptimize(Fibonacci<int>(20)());
 	}
+	state.SetItemsProcessed(state.iterations());
 }
 
 
 // Register the function as a benchmark
-BENCHMARK(BM_FibII);
-BENCHMARK(BM_DummyCache);
+BENCHMARK(BM_Fib);
+BENCHMARK(BM_DummyCache)->Args({20, 1, 30})->Args({25, 2, 30});
 
 BENCHMARK_MAIN();

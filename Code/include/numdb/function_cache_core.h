@@ -31,8 +31,6 @@ class FunctionCacheCore {
 	FunctionCacheCore(UserFuncT&& user_func) :
 			user_func_(std::move(user_func)) {}
 
-	~FunctionCacheCore() = default;
-
 	FunctionCacheCore(const FunctionCacheCore&) = delete;
 	FunctionCacheCore& operator =(const FunctionCacheCore&) = delete;
 
