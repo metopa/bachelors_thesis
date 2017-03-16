@@ -25,12 +25,12 @@ class SplayTree {
 	class Node : SplayStrategyT {
 		friend class SplayTree;
 
-		Node(KeyT&& key, ValueT&& value,
+		Node(KeyT key, ValueT value,
 			 Node* left = nullptr, Node* right = nullptr,
 			 SplayStrategyT strategy = SplayStrategyT()) :
 				SplayStrategyT(strategy),
-				key_(std::forward<KeyT>(key)),
-				value_(std::forward<ValueT>(value)),
+				key_(std::move(key)),
+				value_(std::move(value)),
 				left_(left), right_(right) {}
 
 		const KeyT& key() const {
