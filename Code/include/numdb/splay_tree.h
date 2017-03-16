@@ -20,11 +20,11 @@ struct CanonicalSplayStrategy {
 
 	void visited() {}
 	void accessed() {}
+	void dumpStrategy(std::ostream& out) const {}
 };
 
 //TODO Allocate memory in a single block
 //TODO Track inserted objects
-//TODO Use strategy when splaying
 //TODO Add removal strategy
 //TODO Add timestamp
 //TODO Add check for splay strategy methods
@@ -80,9 +80,13 @@ class SplayTree {
 			if (!node)
 				out << "@" << std::endl;
 			else {
-				out << node->key_ << "->" << node->value_ << std::endl;
-				dump(node->left_, out, level + 1);
-				dump(node->right_, out, level + 1);
+				out << node->key_ << "->" << node->value_ << " ";
+				node->dumpStrategy(out);
+				out << std::endl;
+				if (node->left_ || node->right_) {
+					dump(node->left_, out, level + 1);
+					dump(node->right_, out, level + 1);
+				}
 			}
 		}
 
