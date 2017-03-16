@@ -12,17 +12,29 @@
 #include <cassert>
 #include <ostream>
 
+
+struct CanonicalSplayStrategy {
+	bool shouldSplay(CanonicalSplayStrategy* child) {
+		return true;
+	}
+
+	void visited() {}
+	void accessed() {}
+};
+
 //TODO Allocate memory in a single block
 //TODO Track inserted objects
 //TODO Use strategy when splaying
-//TODO Choose unused node
+//TODO Add removal strategy
+//TODO Add timestamp
+//TODO Add check for splay strategy methods
 template <typename KeyT, typename ValueT,
 		typename SplayStrategyT,
 		typename ComparatorT = std::less<KeyT>>
 class SplayTree {
   public:
 	//Empty member optimization http://www.cantrip.org/emptyopt.html
-	class Node : SplayStrategyT {
+	class Node : public SplayStrategyT {
 		friend class SplayTree;
 
 		Node(KeyT key, ValueT value,
@@ -163,7 +175,7 @@ class SplayTree {
 
   private:
 	enum class EChildType {
-		LEFT, RIGHT, UNDEFINED
+		LEFT, RIGHT, UNDEFINED, DONT_SPLAY
 	};
 
 	Node*& findImpl(const KeyT& key, Node*& node) {
@@ -187,17 +199,20 @@ class SplayTree {
 		EChildType grandchild = EChildType::UNDEFINED;
 
 		if (comparator_(key, node->key_)) {
+			node->visited();
 			child_type = EChildType::LEFT;
 			result = findImplSplay(key, node->left_, grandchild, false);
 		} else if (comparator_(node->key_, key)) {
+			node->visited();
 			child_type = EChildType::RIGHT;
 			result = findImplSplay(key, node->right_, grandchild, false);
-		} else /*key == node->key_*/
+		} else /*key == node->key_*/ {
+			node->accessed();
 			return node;
+		}
 
-		//TODO Add strategy
-		if (splay(node, child_type, grandchild, is_root))
-			child_type = EChildType::UNDEFINED;
+		child_type = splay(node, is_root, child_type, grandchild);
+
 		return result;
 	}
 
@@ -221,51 +236,71 @@ class SplayTree {
 		child->right_ = parent;
 	}
 
-	bool splay(Node*& node, EChildType parent_grandparent, EChildType child_parent, bool is_root) {
+	EChildType splay(Node*& node, bool is_root,
+					 EChildType parent_grandparent,
+					 EChildType child_parent) {
+		if (child_parent == EChildType::DONT_SPLAY ||
+			parent_grandparent == EChildType::DONT_SPLAY)
+			return EChildType::DONT_SPLAY;
+
 		switch (parent_grandparent) {
 			case EChildType::LEFT:
+				if (!node->shouldSplay(node->left_)) {
+					splay(node->left_, true, child_parent,
+						  EChildType::UNDEFINED);
+					return EChildType::DONT_SPLAY;
+				}
 				switch (child_parent) {
 					case EChildType::LEFT:
 						rotateRight(node);
 						rotateRight(node);
-						return true;
+						return EChildType::UNDEFINED;
 					case EChildType::RIGHT:
 						rotateLeft(node->left_);
 						rotateRight(node);
-						return true;
+						return EChildType::UNDEFINED;
+
 					case EChildType::UNDEFINED:
 						if (is_root) {
 							rotateRight(node);
-							return true;
+							return EChildType::UNDEFINED;
 						} else
-							return false;
+							return parent_grandparent;
 				}
 
 			case EChildType::RIGHT:
+				if (!node->shouldSplay(node->right_)) {
+					splay(node->right_, true, child_parent,
+						  EChildType::UNDEFINED);
+					return EChildType::DONT_SPLAY;
+				}
 				switch (child_parent) {
 					case EChildType::LEFT:
 						rotateRight(node->right_);
 						rotateLeft(node);
-						return true;
+						return EChildType::UNDEFINED;
 					case EChildType::RIGHT:
 						rotateLeft(node);
 						rotateLeft(node);
-						return true;
+						return EChildType::UNDEFINED;
 					case EChildType::UNDEFINED:
+						if (!node->shouldSplay(node->right_))
+							return EChildType::DONT_SPLAY;
+
 						if (is_root) {
 							rotateLeft(node);
-							return true;
+							return EChildType::UNDEFINED;
 						} else
-							return false;
+							return parent_grandparent;
 				}
 			case EChildType::UNDEFINED:
-				return false;
+				return EChildType::UNDEFINED;
 		}
 	}
 
 	Node*& getPredecessor(Node*& node) {
 		Node** pred = &(node->left_);
-		while ((*pred)->right)
+		while ((*pred)->right_)
 			pred = &(node->right_);
 		return *pred;
 	}
