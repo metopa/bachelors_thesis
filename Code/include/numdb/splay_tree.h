@@ -15,7 +15,6 @@
 #include "splay_tree_strategy.h"
 
 //TODO Allocate memory in a single block
-//TODO Track inserted objects
 //TODO Add removal strategy
 //TODO Add timestamp
 //TODO Add check for splay strategy methods
@@ -131,6 +130,8 @@ class SplayTree {
 		if (!node)
 			return nullptr;
 
+		node_count_--;
+
 		if (!node->left_) {
 			node_ref = node->right_; //Can be nullptr
 			node->right_ = nullptr;
@@ -144,6 +145,7 @@ class SplayTree {
 
 		Node* predecessor = extractNode(getPredecessor(node));
 		assert(predecessor != nullptr);
+		node_count_++;
 
 		predecessor->left_ = node->left_;
 		predecessor->right_ = node->right_;
@@ -160,6 +162,7 @@ class SplayTree {
 		Node*& place_to_insert = findImpl(node->key_, root_);
 		if (place_to_insert)
 			return false;
+		node_count_++;
 		place_to_insert = node;
 		return true;
 	}
