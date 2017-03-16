@@ -304,7 +304,7 @@ class SplayTree {
 			case EChildType::UNDEFINED:
 				return EChildType::UNDEFINED;
 		}
-		assert(0 && "Should never reach");
+		assert(0 && "Should never be reached");
 		return EChildType::DONT_SPLAY;
 	}
 
