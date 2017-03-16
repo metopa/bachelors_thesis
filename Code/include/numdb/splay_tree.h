@@ -21,7 +21,8 @@ template <typename KeyT, typename ValueT,
 		typename ComparatorT = std::less<KeyT>>
 class SplayTree {
   public:
-	class Node {
+	//Empty member optimization http://www.cantrip.org/emptyopt.html
+	class Node : SplayStrategyT {
 		friend class SplayTree;
 		KeyT key;
 		ValueT value;
@@ -29,10 +30,10 @@ class SplayTree {
 		Node(KeyT&& key, ValueT&& value,
 			 Node* left = nullptr, Node* right = nullptr,
 			 SplayStrategyT strategy = SplayStrategyT()) :
+				SplayStrategyT(strategy),
 				key(std::forward<KeyT>(key)),
 				value(std::forward<ValueT>(value)),
-				left(left), right(right),
-				strategy(strategy) {}
+				left(left), right(right) {}
 
 	  private:
 		/// Replacement for a destructor, since we don't always want
@@ -61,7 +62,6 @@ class SplayTree {
 
 		Node* left;
 		Node* right;
-		SplayStrategyT strategy;
 	};
 
 	Node* root_;
