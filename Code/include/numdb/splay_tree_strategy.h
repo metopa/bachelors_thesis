@@ -19,4 +19,20 @@ struct CanonicalSplayStrategy {
 	void dumpStrategy(std::ostream& out) const {}
 };
 
+struct AccessCountSplayStrategy {
+	bool shouldSplay(AccessCountSplayStrategy* child) {
+		return accesses < child->accesses;
+	}
+
+	void visited() {}
+	void accessed() {
+		accesses++;
+	}
+	void dumpStrategy(std::ostream& out) const {
+		out << "<accesses: " << accesses << ">";
+	}
+
+	int accesses = 0;
+};
+
 #endif //NUMDB_SPLAY_TREE_STRATEGY_H
