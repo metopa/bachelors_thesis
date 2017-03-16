@@ -35,6 +35,11 @@ class SplayTree {
 				value_(std::move(value)),
 				left_(left), right_(right) {}
 
+		~Node() {
+			delete left_;
+			delete right_;
+		}
+
 		const KeyT& key() const {
 			return key_;
 		}
@@ -52,18 +57,6 @@ class SplayTree {
 		}
 
 	  private:
-		/// Replacement for a destructor, since we don't always want
-		/// to delete all ancestors along with the node
-		void deleteWithAncestors() {
-			if (left_)
-				left_->deleteWithAncestors();
-
-			if (right_)
-				right_->deleteWithAncestors();
-
-			delete this;
-		}
-
 		static void dump(const Node* node, std::ostream& out, int level) {
 			for (int i = 0; i < level; i++)
 				out << "- ";
@@ -101,8 +94,7 @@ class SplayTree {
 	SplayTree& operator =(const SplayTree&) = delete;
 
 	~SplayTree() {
-		if (root_)
-			root_->deleteWithAncestors();
+		delete root_;
 	}
 
 	static constexpr size_t maxElemCountForCapacity(size_t capacity) {
