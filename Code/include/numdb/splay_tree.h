@@ -24,26 +24,40 @@ class SplayTree {
 	//Empty member optimization http://www.cantrip.org/emptyopt.html
 	class Node : SplayStrategyT {
 		friend class SplayTree;
-		KeyT key;
-		ValueT value;
 
 		Node(KeyT&& key, ValueT&& value,
 			 Node* left = nullptr, Node* right = nullptr,
 			 SplayStrategyT strategy = SplayStrategyT()) :
 				SplayStrategyT(strategy),
-				key(std::forward<KeyT>(key)),
-				value(std::forward<ValueT>(value)),
-				left(left), right(right) {}
+				key_(std::forward<KeyT>(key)),
+				value_(std::forward<ValueT>(value)),
+				left_(left), right_(right) {}
+
+		const KeyT& key() const {
+			return key_;
+		}
+
+		KeyT& key() {
+			return key_;
+		}
+
+		const ValueT& value() const {
+			return value_;
+		}
+
+		ValueT& value() {
+			return value_;
+		}
 
 	  private:
 		/// Replacement for a destructor, since we don't always want
 		/// to delete all ancestors along with the node
 		void deleteWithAncestors() {
-			if (left)
-				left->deleteWithAncestors();
+			if (left_)
+				left_->deleteWithAncestors();
 
-			if (right)
-				right->deleteWithAncestors();
+			if (right_)
+				right_->deleteWithAncestors();
 
 			delete this;
 		}
@@ -54,14 +68,20 @@ class SplayTree {
 			if (!node)
 				out << "@" << std::endl;
 			else {
-				out << node->key << "->" << node->value << std::endl;
-				dump(node->left, out, level + 1);
-				dump(node->right, out, level + 1);
+				out << node->key_ << "->" << node->value_ << std::endl;
+				dump(node->left_, out, level + 1);
+				dump(node->right_, out, level + 1);
 			}
 		}
 
-		Node* left;
-		Node* right;
+	  private:
+		// This ordering is intended to keep
+		// the most frequently accessed members
+		// at the beginning of the object
+		KeyT key_;
+		Node* left_;
+		Node* right_;
+		ValueT value_;
 	};
 
 	Node* root_;
@@ -75,7 +95,7 @@ class SplayTree {
 			max_node_count_(max_node_count) {}
 
 	SplayTree(const SplayTree&) = delete;
-	SplayTree& operator=(const SplayTree&) = delete;
+	SplayTree& operator =(const SplayTree&) = delete;
 
 	~SplayTree() {
 		if (root_)
@@ -92,7 +112,7 @@ class SplayTree {
 		if (!node)
 			return {};
 		else
-			return {node->value};
+			return {node->value_};
 	}
 
 	/*
@@ -107,24 +127,24 @@ class SplayTree {
 		if (!node)
 			return nullptr;
 
-		if (!node->left) {
-			node_ref = node->right; //Can be nullptr
-			node->right = nullptr;
+		if (!node->left_) {
+			node_ref = node->right_; //Can be nullptr
+			node->right_ = nullptr;
 			return node;
 		}
-		if (!node->right) {
-			node_ref = node->left;
-			node->left = nullptr;
+		if (!node->right_) {
+			node_ref = node->left_;
+			node->left_ = nullptr;
 			return node;
 		}
 
 		Node* predecessor = extractNode(getPredecessor(node));
 		assert(predecessor != nullptr);
 
-		predecessor->left = node->left;
-		predecessor->right = node->right;
+		predecessor->left_ = node->left_;
+		predecessor->right_ = node->right_;
 		node_ref = predecessor;
-		node->right = node->left = nullptr;
+		node->right_ = node->left_ = nullptr;
 		return node;
 	}
 
@@ -133,7 +153,7 @@ class SplayTree {
 	}
 
 	bool insertNode(Node* node) {
-		Node*& place_to_insert = findImpl(node->key, root_);
+		Node*& place_to_insert = findImpl(node->key_, root_);
 		if (place_to_insert)
 			return false;
 		place_to_insert = node;
@@ -152,31 +172,31 @@ class SplayTree {
 	Node*& findImpl(const KeyT& key, Node*& node) {
 		if (!node)
 			return node;
-		if (key == node->key)
+		if (key == node->key_)
 			return node;
 
-		if (key < node->key)
-			return findImpl(key, node->left);
+		if (key < node->key_)
+			return findImpl(key, node->left_);
 		else
-			return findImpl(key, node->right);
+			return findImpl(key, node->right_);
 	}
 
 	Node* findImplSplay(const KeyT& key, Node*& node,
 						EChildType& child_type, bool is_root) {
 		if (!node)
 			return node;
-		if (key == node->key)
+		if (key == node->key_)
 			return node;
 
 		Node* result;
 		EChildType grandchild = EChildType::UNDEFINED;
 
-		if (key < node->key) {
+		if (key < node->key_) {
 			child_type = EChildType::LEFT;
-			result = findImplSplay(key, node->left, grandchild, false);
+			result = findImplSplay(key, node->left_, grandchild, false);
 		} else {
 			child_type = EChildType::RIGHT;
-			result = findImplSplay(key, node->right, grandchild, false);
+			result = findImplSplay(key, node->right_, grandchild, false);
 		}
 		//TODO Add strategy
 		if (splay(node, child_type, grandchild, is_root))
@@ -187,21 +207,21 @@ class SplayTree {
 	void rotateLeft(Node*& parent_ref) {
 		Node* parent = parent_ref;
 		assert(parent != nullptr);
-		Node* child = parent->right;
+		Node* child = parent->right_;
 		assert(child != nullptr);
 		parent_ref = child;
-		parent->right = child->left;
-		child->left = parent;
+		parent->right_ = child->left_;
+		child->left_ = parent;
 	}
 
 	void rotateRight(Node*& parent_ref) {
 		Node* parent = parent_ref;
 		assert(parent != nullptr);
-		Node* child = parent->left;
+		Node* child = parent->left_;
 		assert(child != nullptr);
 		parent_ref = child;
-		parent->left = child->right;
-		child->right = parent;
+		parent->left_ = child->right_;
+		child->right_ = parent;
 	}
 
 	/*
@@ -216,7 +236,7 @@ class SplayTree {
 						rotateRight(node);
 						return true;
 					case EChildType::RIGHT:
-						rotateLeft(node->left);
+						rotateLeft(node->left_);
 						rotateRight(node);
 						return true;
 					case EChildType::UNDEFINED:
@@ -230,7 +250,7 @@ class SplayTree {
 			case EChildType::RIGHT:
 				switch (child_parent) {
 					case EChildType::LEFT:
-						rotateRight(node->right);
+						rotateRight(node->right_);
 						rotateLeft(node);
 						return true;
 					case EChildType::RIGHT:
@@ -250,9 +270,9 @@ class SplayTree {
 	}
 
 	Node*& getPredecessor(Node*& node) {
-		Node** pred = &(node->left);
+		Node** pred = &(node->left_);
 		while ((*pred)->right)
-			pred = &(node->right);
+			pred = &(node->right_);
 		return *pred;
 	}
 };
