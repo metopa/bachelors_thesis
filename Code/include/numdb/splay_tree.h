@@ -12,16 +12,7 @@
 #include <cassert>
 #include <ostream>
 
-
-struct CanonicalSplayStrategy {
-	bool shouldSplay(CanonicalSplayStrategy* child) {
-		return true;
-	}
-
-	void visited() {}
-	void accessed() {}
-	void dumpStrategy(std::ostream& out) const {}
-};
+#include "splay_tree_strategy.h"
 
 //TODO Allocate memory in a single block
 //TODO Track inserted objects
