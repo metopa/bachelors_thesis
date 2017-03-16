@@ -84,15 +84,12 @@ class SplayTree {
 		ValueT value_;
 	};
 
-	Node* root_;
-	size_t node_count_;
-	const size_t max_node_count_;
-
 	using optional_value_t = std::experimental::optional<ValueT>;
 
-	SplayTree(size_t max_node_count) :
+	SplayTree(size_t max_node_count, ComparatorT comparator = ComparatorT()) :
 			root_(nullptr), node_count_(0),
-			max_node_count_(max_node_count) {}
+			max_node_count_(max_node_count),
+			comparator_(std::move(comparator)) {}
 
 	SplayTree(const SplayTree&) = delete;
 	SplayTree& operator =(const SplayTree&) = delete;
@@ -172,32 +169,32 @@ class SplayTree {
 	Node*& findImpl(const KeyT& key, Node*& node) {
 		if (!node)
 			return node;
-		if (key == node->key_)
-			return node;
-
-		if (key < node->key_)
+		if (comparator_(key, node->key_))
 			return findImpl(key, node->left_);
-		else
+		else if (comparator_(node->key_, key))
 			return findImpl(key, node->right_);
+
+		else /*key == node->key_*/
+			return node;
 	}
 
 	Node* findImplSplay(const KeyT& key, Node*& node,
 						EChildType& child_type, bool is_root) {
 		if (!node)
-			return node;
-		if (key == node->key_)
-			return node;
+			return nullptr;
 
 		Node* result;
 		EChildType grandchild = EChildType::UNDEFINED;
 
-		if (key < node->key_) {
+		if (comparator_(key, node->key_)) {
 			child_type = EChildType::LEFT;
 			result = findImplSplay(key, node->left_, grandchild, false);
-		} else {
+		} else if (comparator_(node->key_, key)) {
 			child_type = EChildType::RIGHT;
 			result = findImplSplay(key, node->right_, grandchild, false);
-		}
+		} else /*key == node->key_*/
+			return node;
+
 		//TODO Add strategy
 		if (splay(node, child_type, grandchild, is_root))
 			child_type = EChildType::UNDEFINED;
@@ -224,9 +221,6 @@ class SplayTree {
 		child->right_ = parent;
 	}
 
-	/*
-	 * Not a classical splay, in case of zigzag and zigzig operations it splits the operation
-	 * */
 	bool splay(Node*& node, EChildType parent_grandparent, EChildType child_parent, bool is_root) {
 		switch (parent_grandparent) {
 			case EChildType::LEFT:
@@ -275,6 +269,11 @@ class SplayTree {
 			pred = &(node->right_);
 		return *pred;
 	}
+
+	Node* root_;
+	size_t node_count_;
+	const size_t max_node_count_;
+	ComparatorT comparator_;
 };
 
 #endif //NUMDB_SPLAY_TREE_H
