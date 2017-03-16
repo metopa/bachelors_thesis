@@ -240,22 +240,30 @@ class SplayTree {
 
 		switch (parent_grandparent) {
 			case EChildType::LEFT:
-				if (!node->shouldSplay(node->left_)) {
-					splay(node->left_, true, child_parent,
-						  EChildType::UNDEFINED);
-					return EChildType::DONT_SPLAY;
-				}
 				switch (child_parent) {
 					case EChildType::LEFT:
+						if (!node->shouldSplay(node->left_->left_)) {
+							splay(node->left_, true, child_parent,
+								  EChildType::UNDEFINED);
+							return EChildType::DONT_SPLAY;
+						}
 						rotateRight(node);
 						rotateRight(node);
 						return EChildType::UNDEFINED;
 					case EChildType::RIGHT:
+						if (!node->shouldSplay(node->left_->right_)) {
+							splay(node->left_, true, child_parent,
+								  EChildType::UNDEFINED);
+							return EChildType::DONT_SPLAY;
+						}
 						rotateLeft(node->left_);
 						rotateRight(node);
 						return EChildType::UNDEFINED;
 
 					case EChildType::UNDEFINED:
+						if (!node->shouldSplay(node->left_))
+							return EChildType::DONT_SPLAY;
+
 						if (is_root) {
 							rotateRight(node);
 							return EChildType::UNDEFINED;
@@ -264,17 +272,22 @@ class SplayTree {
 				}
 
 			case EChildType::RIGHT:
-				if (!node->shouldSplay(node->right_)) {
-					splay(node->right_, true, child_parent,
-						  EChildType::UNDEFINED);
-					return EChildType::DONT_SPLAY;
-				}
 				switch (child_parent) {
 					case EChildType::LEFT:
+						if (!node->shouldSplay(node->right_->left_)) {
+							splay(node->right_, true, child_parent,
+								  EChildType::UNDEFINED);
+							return EChildType::DONT_SPLAY;
+						}
 						rotateRight(node->right_);
 						rotateLeft(node);
 						return EChildType::UNDEFINED;
 					case EChildType::RIGHT:
+						if (!node->shouldSplay(node->right_->right_)) {
+							splay(node->right_, true, child_parent,
+								  EChildType::UNDEFINED);
+							return EChildType::DONT_SPLAY;
+						}
 						rotateLeft(node);
 						rotateLeft(node);
 						return EChildType::UNDEFINED;
@@ -291,6 +304,8 @@ class SplayTree {
 			case EChildType::UNDEFINED:
 				return EChildType::UNDEFINED;
 		}
+		assert(0 && "Should never reach");
+		return EChildType::DONT_SPLAY;
 	}
 
 	Node*& getPredecessor(Node*& node) {
