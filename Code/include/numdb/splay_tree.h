@@ -114,10 +114,40 @@ class SplayTree {
 	 * This approach because we assume that an important node is not going to be deleted.
 	 */
 	Node* extractNode(const KeyT& key) {
-		return extractNode(findImpl(key, root_));
+		return extractNodeImpl(findImpl(key, root_));
 	}
 
-	Node* extractNode(Node*& node_ref) {
+	bool remove(const KeyT& key) {
+		Node* n = extractNode(key);
+		if (!n)
+			return false;
+		delete n;
+		return true;
+	}
+
+	bool insert(KeyT key, ValueT value) {
+		return insertNode(new Node(std::move(key), std::move(value)));
+	}
+
+	bool insertNode(Node* node) {
+		Node*& place_to_insert = findImpl(node->key_, root_);
+		if (place_to_insert)
+			return false;
+		node_count_++;
+		place_to_insert = node;
+		return true;
+	}
+
+	void dump(std::ostream& out) {
+		Node::dump(root_, out, 0);
+	}
+
+  private:
+	enum class EChildType {
+		LEFT, RIGHT, UNDEFINED, DONT_SPLAY
+	};
+
+	Node* extractNodeImpl(Node*& node_ref) {
 		Node* node = node_ref;
 		if (!node)
 			return nullptr;
@@ -145,28 +175,6 @@ class SplayTree {
 		node->right_ = node->left_ = nullptr;
 		return node;
 	}
-
-	bool insert(KeyT key, ValueT value) {
-		return insertNode(new Node(std::move(key), std::move(value)));
-	}
-
-	bool insertNode(Node* node) {
-		Node*& place_to_insert = findImpl(node->key_, root_);
-		if (place_to_insert)
-			return false;
-		node_count_++;
-		place_to_insert = node;
-		return true;
-	}
-
-	void dump(std::ostream& out) {
-		Node::dump(root_, out, 0);
-	}
-
-  private:
-	enum class EChildType {
-		LEFT, RIGHT, UNDEFINED, DONT_SPLAY
-	};
 
 	Node*& findImpl(const KeyT& key, Node*& node) {
 		if (!node)
