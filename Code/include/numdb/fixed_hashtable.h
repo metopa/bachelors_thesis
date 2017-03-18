@@ -13,10 +13,12 @@
 #include <ostream>
 #include <experimental/optional>
 
+#include "murmurhash2/all.h"
+
 //TODO Restrict class to use a power of 2 as a table size
 //TODO Preallocate all nodes
 template <typename KeyT, typename ValueT,
-		typename HasherT = std::hash<KeyT>>
+		typename HasherT = mmh2::MurmurHash2<KeyT>>
 class FixedHashtable {
   public:
 	using optional_value_t = std::experimental::optional<ValueT>;
