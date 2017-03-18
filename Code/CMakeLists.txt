@@ -3,6 +3,8 @@ project(NumDB)
 
 set(CMAKE_CXX_STANDARD 14)
 
+add_subdirectory(3rdparty/murmurhash2functor/lib)
+
 set(NUMBD_FILES)
 #add_library(numdb ${NUMDB_FILES})
 include_directories(include)
