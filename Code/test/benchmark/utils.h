@@ -22,4 +22,25 @@ double computeSigma(double area, size_t element_count) {
 	return element_count / 2 / q;
 }
 
+
+template <typename Result, typename... Args>
+struct Fibonacci {
+	Fibonacci(int fib_arg) : fib_arg_(fib_arg) {}
+
+	Result operator ()(Args...) {
+		volatile int n = fib_arg_;
+		n = fibonacciImpl(n);
+		return n;
+	}
+
+	static size_t aggregatedArgSize() {
+		return sizeof(std::tuple<Result, Args...>);
+	}
+  private:
+	int fib_arg_;
+	int fibonacciImpl(int n) {
+		return n <= 2 ? 1 : fibonacciImpl(n - 1) + fibonacciImpl(n - 2);
+	}
+};
+
 #endif //NUMDB_UTIL_H
