@@ -10,11 +10,14 @@
 class FairLRU {
   public:
 	struct Node {
+		friend class FairLRU;
+
 		Node* next;
 		Node** this_in_prev;
 
 		Node() : next(nullptr), this_in_prev(nullptr) {}
 
+	  private:
 		Node* extract() {
 			*this_in_prev = next;
 			if (next)
