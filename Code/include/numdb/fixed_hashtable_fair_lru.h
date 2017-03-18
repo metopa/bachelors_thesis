@@ -8,8 +8,20 @@
 #define NUMDB_FIXED_HASHTABLE_FAIR_LRU_H
 
 #include "murmurhash2/all.h"
+
 #include "fixed_hashtable_base.h"
 #include "utils.h"
+
+template <typename KeyT, typename ValueT, typename HasherT>
+class FixedHashtableFairLRU;
+
+template <typename KeyT, typename ValueT, typename HasherT>
+struct HashtableTraits<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
+	typedef KeyT key_t;
+	typedef ValueT value_t;
+	typedef HasherT hasher_t;
+	typedef Empty node_base_t;
+};
 
 template <typename KeyT, typename ValueT,
 		typename HasherT = mmh2::MurmurHash2<KeyT>>
