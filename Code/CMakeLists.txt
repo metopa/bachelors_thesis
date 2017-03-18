@@ -17,5 +17,3 @@ add_executable(main src/main.cpp)
 add_executable(bench test/benchmark/bench.cpp)
 target_link_libraries(bench benchmark pthread)
 
-add_executable(playground test/playground.cpp)
-target_link_libraries(playground murmurhash2)
