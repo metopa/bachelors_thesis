@@ -15,7 +15,6 @@
 
 #include "utils.h"
 
-
 //TODO Restrict class to use a power of 2 as a table size
 //TODO Use bit masking instead of integer division
 //TODO Preallocate all nodes
@@ -62,8 +61,15 @@ class FixedHashtableBase {
 		value_t value_;
 	};
 
+	static constexpr size_t maxElemCountForCapacity(size_t capacity, double load_factor = 2) {
+		return static_cast<size_t>(
+				capacity / (sizeof(Node) + sizeof(Node*) / load_factor));
+	}
+
 	FixedHashtableBase(size_t table_size, size_t max_element_count) :
-			buckets_(table_size, nullptr) {}
+			buckets_(table_size, nullptr),
+			max_count_(max_element_count),
+			count_(0) {}
 
 	FixedHashtableBase(const FixedHashtableBase&) = delete;
 	FixedHashtableBase& operator =(const FixedHashtableBase&) = delete;
@@ -74,7 +80,7 @@ class FixedHashtableBase {
 	}
 
 	optional_value_t find(const key_t& key) {
-		Node** root_node = buckets_[getBucket(key)];
+		Node** root_node = &buckets_[getBucket(key)];
 		Node** node_ref = root_node;
 
 		while (*node_ref) {
@@ -102,11 +108,24 @@ class FixedHashtableBase {
 		Node** root_node = &buckets_[getBucket(key)];
 		Node** node = root_node;
 		while (*node) {
-			if ((*node)->key_ == key)
+			if ((*node)->key_ == key) {
+				nodeAccessed(*node);
 				return false;
+			}
 			node = &((*node)->next_);
 		}
-		*root_node = new Node(std::move(key), std::move(value), *root_node);
+
+		Node* new_node = nullptr;
+		if (count_ == max_count_) {
+			new_node = extractLruNode();
+			new_node->key_ = std::move(key);
+			new_node->value_ = std::move(value);
+		} else
+			new_node = new Node(std::move(key), std::move(value));
+
+		new_node->insertBefore(root_node);
+		nodeInserted(new_node);
+
 		return true;
 	}
 
@@ -117,6 +136,7 @@ class FixedHashtableBase {
 			if ((*node_ref)->key_ == key) {
 				Node* found_node = *node_ref;
 				found_node->extract(node_ref);
+				nodeExtracted(found_node);
 				return found_node;
 			}
 			node_ref = &((*node_ref)->next_);
@@ -125,7 +145,7 @@ class FixedHashtableBase {
 		return nullptr;
 	}
 
-	bool remove(const key_t& key) {
+	bool erase(const key_t& key) {
 		Node* n = extractNode(key);
 		if (!n)
 			return false;
@@ -133,12 +153,7 @@ class FixedHashtableBase {
 		return true;
 	}
 
-	static constexpr size_t maxElemCountForCapacity(size_t capacity, double load_factor = 2) {
-		return static_cast<size_t>(
-				capacity / (sizeof(Node) + sizeof(Node*) / load_factor));
-	}
-
-	void dump(std::ostream& out) {
+	void dump(std::ostream& out) const {
 		for (size_t i = 0; i < buckets_.size(); i++) {
 			out << '[' << i << ']';
 			Node* node = buckets_[i];
@@ -152,20 +167,32 @@ class FixedHashtableBase {
 
   private:
 	void nodeAccessed(Node* node) {
-		static_cast<CrtpDerived>(this)->nodeAccessedImpl(node);
+		static_cast<CrtpDerived*>(this)->nodeAccessedImpl(node);
+	}
+
+	void nodeInserted(Node* node) {
+		static_cast<CrtpDerived*>(this)->nodeInsertedImpl(node);
+	}
+
+	void nodeExtracted(Node* node) {
+		static_cast<CrtpDerived*>(this)->nodeExtractedImpl(node);
 	}
 
 	Node* extractLruNode() {
-		return static_cast<CrtpDerived>(this)->extractLruNodeImpl();
+		return static_cast<CrtpDerived*>(this)->extractLruNodeImpl();
 	}
 
   protected:
 	///Following methods would be implemented in derived classes.
 	///They are called through Curiously Recurring Template Pattern
 	void nodeAccessedImpl(Node* node);
+	void nodeInsertedImpl(Node* node);
+	void nodeExtractedImpl(Node* node);
 	Node* extractLruNodeImpl();
   private:
 	std::vector<Node*> buckets_;
+	const size_t max_count_;
+	size_t count_;
 };
 
 #endif //NUMDB_FIXED_HASHTABLE_BASE_H
