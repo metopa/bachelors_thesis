@@ -8,8 +8,9 @@
 #include <gtest/gtest.h>
 #include "numdb/fair_lru.h"
 
+struct Node : public FairLRU::Node {};
+
 TEST(FairLRU, node_insertion_extraction) {
-	using Node = FairLRU::Node;
 	FairLRU lru;
 	std::unique_ptr<Node> a (new Node());
 	EXPECT_EQ(lru.extractLruNode(), nullptr);
@@ -24,7 +25,6 @@ TEST(FairLRU, node_insertion_extraction) {
 }
 
 TEST(FairLRU, fifo_test) {
-	using Node = FairLRU::Node;
 	FairLRU lru;
 	std::unique_ptr<Node> a(new Node());
 	std::unique_ptr<Node> b(new Node());
@@ -40,7 +40,6 @@ TEST(FairLRU, fifo_test) {
 }
 
 TEST(FairLRU, mark_ru_test) {
-	using Node = FairLRU::Node;
 	FairLRU lru;
 	std::unique_ptr<Node> a(new Node());
 	std::unique_ptr<Node> b(new Node());

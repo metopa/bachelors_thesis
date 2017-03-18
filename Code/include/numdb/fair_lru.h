@@ -1,6 +1,6 @@
 /** @file fair_lru.h
  *  @brief
- *  @warning FairLRU does not manages a lifetime of it's nodes. Node struct is designed to be a base class of another node, defined in a container and this contained must control a lifetime of it's nodes.
+ *  @warning FairLRU does not manages a lifetime of it's nodes. Node class is designed to be a base class of another node, defined in a container and this contained must control a lifetime of it's nodes.
  *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
@@ -13,48 +13,44 @@ class FairLRU {
 		friend class FairLRU;
 
 		Node* next;
-		Node** this_in_prev;
+		Node* prev;
 
-		Node() : next(nullptr), this_in_prev(nullptr) {}
+		Node() : next(nullptr), prev(nullptr) {}
+
+	  protected:
+		/**
+		 * @remark Destructor is declared protected so only derived node can be deleted. With this limitation, dtor may not be declared virtual. This way we eliminate a vtable cost.
+		*/
+		~Node() = default;
 
 	  private:
 		Node* extract() {
-			*this_in_prev = next;
+			prev->next = next;
 			if (next)
-				next->this_in_prev = this_in_prev;
-			next = nullptr;
+				next->prev = prev;
 			return this;
 		}
 
-		void insertBefore(Node** node_ref) {
-			next = *node_ref;
-			this_in_prev = node_ref;
-			*node_ref = this;
+		void insertAfter(Node* node) {
+			prev = node;
+			next = node->next;
+			node->next = this;
 			if (next)
-				next->this_in_prev = &(next);
-		}
-
-		void insertBefore(Node* node) {
-			insertBefore(node->this_in_prev);
+				next->prev = this;
 		}
 	};
 
 	FairLRU() {
-		head_ = tail_ = new Node();
-		tail_->this_in_prev = &head_;
-	}
-
-	~FairLRU() {
-		delete tail_;
+		tail_.insertAfter(&head_);
 	}
 
 	FairLRU(const FairLRU&) = delete;
 	FairLRU& operator =(const FairLRU&) = delete;
 
 	Node* extractLruNode() {
-		if (head_ == tail_)
+		if (head_.next == &tail_)
 			return nullptr;
-		return head_->extract();
+		return head_.next->extract();
 	}
 
 	void markRecentlyUsed(Node* node) {
@@ -63,15 +59,16 @@ class FairLRU {
 	}
 
 	void insertNode(Node* node) {
-		node->insertBefore(tail_);
+		node->insertAfter(tail_.prev);
 	}
 
 	void extractNode(Node* node) {
 		node->extract();
 	}
+
   private:
-	Node* head_;
-	Node* tail_;
+	Node head_;
+	Node tail_;
 };
 
 #endif //NUMDB_FAIR_LRU_H
