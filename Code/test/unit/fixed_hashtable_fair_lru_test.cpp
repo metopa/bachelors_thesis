@@ -61,3 +61,49 @@ TEST(HashTable_FairLRU, limit_element_count_1) {
 		ASSERT_EQ(*result, i);
 	}
 }
+
+TEST(HashTable_FairLRU, lru_test) {
+	FixedHashtableFairLRU<int, int> ht(5, 10);
+	for (int i = 10; i < 25; i++)
+		ht.insert(i, i);
+
+	for (int i = 10; i < 15; i++) {
+		auto result = ht.find(i);
+		ASSERT_EQ(bool(result), false);
+	}
+
+	for (int i = 15; i < 20; i++) {
+		auto result = ht.find(i);
+		ASSERT_EQ(bool(result), true);
+		ASSERT_EQ(*result, i);
+	}
+
+	for (int i = 10; i < 15; i++)
+		ht.insert(i, i);
+
+	for (int i = 14; i >= 10; i--) {
+		auto result = ht.find(i);
+		ASSERT_EQ(bool(result), true);
+		ASSERT_EQ(*result, i);
+	}
+
+	for (int i = 30; i < 35; i++)
+		ht.insert(i, i);
+
+	for (int i = 10; i < 15; i++) {
+		auto result = ht.find(i);
+		ASSERT_EQ(bool(result), true);
+		ASSERT_EQ(*result, i);
+	}
+
+	for (int i = 15; i < 30; i++) {
+		auto result = ht.find(i);
+		ASSERT_EQ(bool(result), false);
+	}
+
+	for (int i = 30; i < 35; i++) {
+		auto result = ht.find(i);
+		ASSERT_EQ(bool(result), true);
+		ASSERT_EQ(*result, i);
+	}
+}
