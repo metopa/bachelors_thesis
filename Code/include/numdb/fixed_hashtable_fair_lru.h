@@ -25,16 +25,24 @@ struct HashtableTraits<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
 
 template <typename KeyT, typename ValueT,
 		typename HasherT = mmh2::MurmurHash2<KeyT>>
-class FixedHashtableFairLRU : public FixedHashtableBase<FixedHashtableFairLRU<KeyT, ValueT, HasherT>, Empty, KeyT, ValueT, HasherT> {
+class FixedHashtableFairLRU :
+		public FixedHashtableBase<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
+
   public:
+	typedef FixedHashtableBase<
+			FixedHashtableFairLRU<KeyT, ValueT, HasherT>
+	> base_t;
+	typedef typename base_t::Node node_t;
+
 	FixedHashtableFairLRU(size_t table_size, size_t max_element_count) :
-			FixedHashtableBase<FixedHashtableFairLRU<KeyT, ValueT, HasherT>, Empty, KeyT, ValueT, HasherT> (table_size, max_element_count) {}
+			base_t(table_size, max_element_count) {}
 
   protected:
-	void nodeAccessedImpl(typename FixedHashtableBase<FixedHashtableFairLRU<KeyT, ValueT, HasherT>, Empty, KeyT, ValueT, HasherT>::Node* node)  {
+	void nodeAccessedImpl(node_t* node) {
 
 	}
-	typename FixedHashtableBase<FixedHashtableFairLRU<KeyT, ValueT, HasherT>, Empty, KeyT, ValueT, HasherT>::Node* extractLruNodeImpl() {
+
+	node_t* extractLruNodeImpl() {
 		return nullptr;
 	}
 };
