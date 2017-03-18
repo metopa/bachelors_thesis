@@ -13,33 +13,37 @@
 #include <ostream>
 #include <experimental/optional>
 
+#include "utils.h"
+
 
 //TODO Restrict class to use a power of 2 as a table size
 //TODO Use bit masking instead of integer division
 //TODO Preallocate all nodes
-template <typename CrtpDerived, typename NodeBaseClass,
-		typename KeyT, typename ValueT,
-		typename HasherT>
+template <typename CrtpDerived>
 class FixedHashtableBase {
   public:
-	using optional_value_t = std::experimental::optional<ValueT>;
+	typedef typename HashtableTraits<CrtpDerived>::key_t key_t;
+	typedef typename HashtableTraits<CrtpDerived>::value_t value_t;
+	typedef typename HashtableTraits<CrtpDerived>::hasher_t hasher_t;
+	typedef typename HashtableTraits<CrtpDerived>::node_base_t node_base_t;
+	typedef std::experimental::optional<value_t> optional_value_t;
 
-	class Node : public NodeBaseClass {
+	class Node : public node_base_t {
 		friend class FixedHashtableBase;
 
 	  public:
-		Node(KeyT key, ValueT value, Node* next = nullptr) :
+		Node(key_t key, value_t value, Node* next = nullptr) :
 				next_(next), key_(std::move(key)), value_(std::move(value)) {}
 
 		~Node() {
 			delete next_;
 		}
 
-		KeyT& key() { return key_; }
-		const KeyT& key() const { return key_; }
+		key_t& key() { return key_; }
+		const key_t& key() const { return key_; }
 
-		ValueT& value() { return value_; }
-		const ValueT& value() const { return value_; }
+		value_t& value() { return value_; }
+		const value_t& value() const { return value_; }
 
 	  private:
 		void extract(Node** this_node_ref) {
@@ -54,8 +58,8 @@ class FixedHashtableBase {
 		}
 
 		Node* next_;
-		KeyT key_;
-		ValueT value_;
+		key_t key_;
+		value_t value_;
 	};
 
 	FixedHashtableBase(size_t table_size, size_t max_element_count) :
@@ -69,7 +73,7 @@ class FixedHashtableBase {
 			delete n;
 	}
 
-	optional_value_t find(const KeyT& key) {
+	optional_value_t find(const key_t& key) {
 		Node** root_node = buckets_[getBucket(key)];
 		Node** node_ref = root_node;
 
@@ -89,12 +93,12 @@ class FixedHashtableBase {
 		return {};
 	}
 
-	size_t getBucket(const KeyT& key) const {
-		size_t bucket = HasherT()(key) % buckets_.size();
+	size_t getBucket(const key_t& key) const {
+		size_t bucket = hasher_t()(key) % buckets_.size();
 		return bucket;
 	}
 
-	bool insert(KeyT key, ValueT value) {
+	bool insert(key_t key, value_t value) {
 		Node** root_node = &buckets_[getBucket(key)];
 		Node** node = root_node;
 		while (*node) {
@@ -106,7 +110,7 @@ class FixedHashtableBase {
 		return true;
 	}
 
-	Node* extractNode(const KeyT& key) {
+	Node* extractNode(const key_t& key) {
 		Node** node_ref = &buckets_[getBucket(key)];
 
 		while (*node_ref) {
@@ -121,7 +125,7 @@ class FixedHashtableBase {
 		return nullptr;
 	}
 
-	bool remove(const KeyT& key) {
+	bool remove(const key_t& key) {
 		Node* n = extractNode(key);
 		if (!n)
 			return false;
