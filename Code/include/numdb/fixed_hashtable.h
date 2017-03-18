@@ -16,6 +16,7 @@
 #include "murmurhash2/all.h"
 
 //TODO Restrict class to use a power of 2 as a table size
+//TODO Use bit masking instead of integer division
 //TODO Preallocate all nodes
 template <typename KeyT, typename ValueT,
 		typename HasherT = mmh2::MurmurHash2<KeyT>>
@@ -39,7 +40,19 @@ class FixedHashtable {
 
 		ValueT& value() { return value_; }
 		const ValueT& value() const { return value_; }
+
 	  private:
+		void extract(Node** this_node_ref) {
+			assert(this_node_ref != nullptr && this == *this_node_ref);
+			*this_node_ref = next_;
+		}
+
+		void insertBefore(Node** next_node_ref) {
+			assert(next_node_ref != nullptr);
+			next_ = *next_node_ref;
+			*next_node_ref = this;
+		}
+
 		Node* next_;
 		KeyT key_;
 		ValueT value_;
@@ -58,17 +71,21 @@ class FixedHashtable {
 
 	optional_value_t find(const KeyT& key) {
 		Node** root_node = buckets_[getBucket(key)];
-		Node** node = root_node;
-		while (*node) {
-			if ((*node)->key_ == key) {
-				Node* found_node = *node;
-				*node = found_node->next_;
-				found_node->next_ = *root_node;
-				*root_node = found_node;
+		Node** node_ref = root_node;
+
+		while (*node_ref) {
+			if ((*node_ref)->key_ == key) {
+				Node* found_node = *node_ref;
+
+				if (root_node != node_ref) {
+					found_node->extract(node_ref);
+					found_node->insertBefore(root_node);
+				}
 				return {found_node->value_};
 			}
-			node = &((*node)->next_);
+			node_ref = &((*node_ref)->next_);
 		}
+
 		return {};
 	}
 
@@ -90,15 +107,15 @@ class FixedHashtable {
 	}
 
 	Node* extractNode(const KeyT& key) {
-		Node** node = &buckets_[getBucket(key)];
-		while (*node) {
-			if ((*node)->key_ == key) {
-				Node* found_node = *node;
-				*node = found_node->next_;
-				found_node->next_ = nullptr;
+		Node** node_ref = &buckets_[getBucket(key)];
+
+		while (*node_ref) {
+			if ((*node_ref)->key_ == key) {
+				Node* found_node = *node_ref;
+				found_node->extract(node_ref);
 				return found_node;
 			}
-			node = &((*node)->next_);
+			node_ref = &((*node_ref)->next_);
 		}
 
 		return nullptr;
