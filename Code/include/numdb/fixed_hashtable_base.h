@@ -171,14 +171,20 @@ class FixedHashtableBase {
 	}
 
 	void nodeInserted(Node* node) {
+		count_++;
+		assert(count_ <= max_count_);
 		static_cast<CrtpDerived*>(this)->nodeInsertedImpl(node);
 	}
 
 	void nodeExtracted(Node* node) {
+		assert(count_ > 0);
+		count_--;
 		static_cast<CrtpDerived*>(this)->nodeExtractedImpl(node);
 	}
 
 	Node* extractLruNode() {
+		assert(count_ > 0);
+		count_--;
 		return static_cast<CrtpDerived*>(this)->extractLruNodeImpl();
 	}
 
