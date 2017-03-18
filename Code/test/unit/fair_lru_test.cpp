@@ -63,5 +63,3 @@ TEST(FairLRU, mark_ru_test) {
 	EXPECT_EQ(lru.extractLruNode(), c.get());
 	EXPECT_EQ(lru.extractLruNode(), nullptr);
 }
-
-
