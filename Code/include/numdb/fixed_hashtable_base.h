@@ -1,11 +1,11 @@
-/** @file fixed_hashtable.h
+/** @file fixed_hashtable_base.h
  *  @brief
  *
  *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
-#ifndef NUMDB_FIXED_HASHTABLE_H
-#define NUMDB_FIXED_HASHTABLE_H
+#ifndef NUMDB_FIXED_HASHTABLE_BASE_H
+#define NUMDB_FIXED_HASHTABLE_BASE_H
 
 #include <functional>
 #include <cmath>
@@ -18,15 +18,15 @@
 //TODO Restrict class to use a power of 2 as a table size
 //TODO Use bit masking instead of integer division
 //TODO Preallocate all nodes
-class FixedHashtable {
 template <typename CrtpDerived, typename NodeBaseClass,
 		typename KeyT, typename ValueT,
 		typename HasherT>
+class FixedHashtableBase {
   public:
 	using optional_value_t = std::experimental::optional<ValueT>;
 
-	class Node {
-		friend class FixedHashtable;
+	class Node : public NodeBaseClass {
+		friend class FixedHashtableBase;
 
 	  public:
 		Node(KeyT key, ValueT value, Node* next = nullptr) :
@@ -59,13 +59,13 @@ template <typename CrtpDerived, typename NodeBaseClass,
 		ValueT value_;
 	};
 
-	FixedHashtable(size_t table_size, size_t max_element_count) :
+	FixedHashtableBase(size_t table_size, size_t max_element_count) :
 			buckets_(table_size, nullptr) {}
 
-	FixedHashtable(const FixedHashtable&) = delete;
-	FixedHashtable& operator=(const FixedHashtable&) = delete;
+	FixedHashtableBase(const FixedHashtableBase&) = delete;
+	FixedHashtableBase& operator =(const FixedHashtableBase&) = delete;
 
-	~FixedHashtable() {
+	~FixedHashtableBase() {
 		for (Node* n : buckets_)
 			delete n;
 	}
@@ -165,4 +165,4 @@ template <typename CrtpDerived, typename NodeBaseClass,
 	std::vector<Node*> buckets_;
 };
 
-#endif //NUMDB_FIXED_HASHTABLE_H
+#endif //NUMDB_FIXED_HASHTABLE_BASE_H
