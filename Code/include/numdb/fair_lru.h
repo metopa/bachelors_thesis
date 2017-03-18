@@ -65,6 +65,10 @@ class FairLRU {
 	void insertNode(Node* node) {
 		node->insertBefore(tail_);
 	}
+
+	void extractNode(Node* node) {
+		node->extract();
+	}
   private:
 	Node* head_;
 	Node* tail_;
