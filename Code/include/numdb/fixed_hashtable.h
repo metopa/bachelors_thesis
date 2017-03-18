@@ -18,9 +18,10 @@
 //TODO Restrict class to use a power of 2 as a table size
 //TODO Use bit masking instead of integer division
 //TODO Preallocate all nodes
-template <typename KeyT, typename ValueT,
-		typename HasherT = mmh2::MurmurHash2<KeyT>>
 class FixedHashtable {
+template <typename CrtpDerived, typename NodeBaseClass,
+		typename KeyT, typename ValueT,
+		typename HasherT>
   public:
 	using optional_value_t = std::experimental::optional<ValueT>;
 
@@ -130,7 +131,8 @@ class FixedHashtable {
 	}
 
 	static constexpr size_t maxElemCountForCapacity(size_t capacity, double load_factor = 2) {
-		return static_cast<size_t>(capacity / (sizeof(Node) + sizeof(Node*) / load_factor));
+		return static_cast<size_t>(
+				capacity / (sizeof(Node) + sizeof(Node*) / load_factor));
 	}
 
 	void dump(std::ostream& out) {
@@ -145,6 +147,20 @@ class FixedHashtable {
 		}
 	}
 
+  private:
+	void nodeAccessed(Node* node) {
+		static_cast<CrtpDerived>(this)->nodeAccessedImpl(node);
+	}
+
+	Node* extractLruNode() {
+		return static_cast<CrtpDerived>(this)->extractLruNodeImpl();
+	}
+
+  protected:
+	///Following methods would be implemented in derived classes.
+	///They are called through Curiously Recurring Template Pattern
+	void nodeAccessedImpl(Node* node);
+	Node* extractLruNodeImpl();
   private:
 	std::vector<Node*> buckets_;
 };
