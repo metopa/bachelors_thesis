@@ -9,4 +9,9 @@
 
 struct Empty{};
 
+template <class T>
+struct HashtableTraits {
+	static_assert(sizeof(T) < 0, "No traits specialization for this type");
+};
+
 #endif //NUMDB_BENCHMARK_UTILS_H
