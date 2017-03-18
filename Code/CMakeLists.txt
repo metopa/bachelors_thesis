@@ -4,6 +4,7 @@ project(NumDB)
 set(CMAKE_CXX_STANDARD 14)
 
 add_subdirectory(3rdparty/murmurhash2functor/lib)
+add_subdirectory(test/unit)
 
 include_directories(include)
 include_directories(3rdparty/include)
