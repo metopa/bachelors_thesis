@@ -90,6 +90,14 @@ class SplayTreeBase {
 	};
 
 	SplayTreeBase(size_t max_node_count, comparator_t comparator) :
+	static constexpr size_t maxElemCountForCapacity(size_t capacity) {
+		return capacity / sizeof(Node);
+	}
+
+	static constexpr size_t elementSize() {
+		return sizeof(Node);
+	}
+
 			root_(nullptr), node_count_(0),
 			max_node_count_(max_node_count),
 			comparator_(std::move(comparator)) {}
@@ -101,8 +109,12 @@ class SplayTreeBase {
 		delete root_;
 	}
 
-	static constexpr size_t maxElemCountForCapacity(size_t capacity) {
-		return capacity / sizeof(Node);
+	size_t capacity() const {
+		return max_node_count_;
+	}
+
+	size_t size() const {
+		return node_count_;
 	}
 
 	optional_value_t find(const key_t& key) {
@@ -114,9 +126,6 @@ class SplayTreeBase {
 			return {node->value_};
 	}
 
-	/*
-	 * This approach because we assume that an important node is not going to be deleted.
-	 */
 	Node* extractNode(const key_t& key) {
 		return extractNodeImpl(findImpl(key, root_));
 	}
