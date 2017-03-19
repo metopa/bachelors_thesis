@@ -6,17 +6,24 @@
 
 #include <random>
 
-#include <benchmark/benchmark.h>
+#include "benchmark/benchmark.h"
+#include "numdb/fixed_hashtable_function_cache.h"
 
 #include "numdb/numdb.h"
 #include "utils.h"
+
+double computeHitRate(size_t total_retrievals,
+					  size_t user_func_calls) {
+
+	return (total_retrievals - user_func_calls) / (double) total_retrievals * 100;
+}
 
 /**
  * @arg state.range(0) argument for a Fibonacci function
  * @arg state.range(1) available memory (in KiB)
  * @arg state.range(2) desired area under curve (in percents)
  */
-void BM_DummyCache(benchmark::State& state) {
+void BM_Dummy(benchmark::State& state) {
 	using UserFunc = Fibonacci<int, double, double>;
 	size_t mem = static_cast<size_t>(state.range(1));
 	mem *= 1024;
@@ -34,16 +41,48 @@ void BM_DummyCache(benchmark::State& state) {
 			cache(UserFunc(state.range(0)), mem);
 
 	while (state.KeepRunning()) {
-		volatile double a = dist(e);
-		volatile double b = dist(e);
+		double a = dist(e);
+		double b = dist(e);
 		benchmark::DoNotOptimize(cache(a, b));
 	}
 
 	state.SetItemsProcessed(state.iterations());
 	state.counters["capacity"] = max_element_capacity;
-	state.counters["overhead"] = 0;
-	state.counters["direct calls [%]"] =
-			cache.eventCounter().user_func_invocations / (double) state.iterations() * 100;
+	state.counters["hitrate"] = computeHitRate(cache.eventCounter().total_retrievals,
+											   cache.eventCounter().user_func_invocations);
+}
+
+/**
+ * @arg state.range(0) argument for a Fibonacci function
+ * @arg state.range(1) available memory (in KiB)
+ * @arg state.range(2) desired area under curve (in percents)
+ */
+void BM_Hashtable(benchmark::State& state) {
+	using UserFunc = Fibonacci<int, double>;
+
+	size_t mem = static_cast<size_t>(state.range(1)) * 1024;
+	size_t max_element_capacity = mem / UserFunc::aggregatedArgSize();
+
+	double area = state.range(2);
+	area /= 100;
+
+	double sigma = computeSigma(area, max_element_capacity);
+	std::random_device r;
+	std::mt19937 e(r());
+	std::normal_distribution<double> dist(0, sigma);
+
+	FixedHashtableFunctionCache<UserFunc, BasicEventCounter>
+			cache(UserFunc(state.range(0)), mem);
+
+	while (state.KeepRunning()) {
+		double a = std::round(dist(e));
+		benchmark::DoNotOptimize(cache(a));
+	}
+
+	state.SetItemsProcessed(state.iterations());
+	state.counters["capacity"] = cache.capacity();
+	state.counters["hitrate"] = computeHitRate(cache.eventCounter().total_retrievals,
+											   cache.eventCounter().user_func_invocations);
 }
 
 
@@ -56,7 +95,7 @@ void BM_Fib(benchmark::State& state) {
 
 
 // Register the function as a benchmark
-BENCHMARK(BM_Fib);
-BENCHMARK(BM_DummyCache)->Args({20, 1, 30})->Args({25, 2, 30});
+BENCHMARK(BM_Hashtable)->Args({25, 100, 30})->Args({25, 100, 50})->Args({25, 100, 70});
+BENCHMARK(BM_Dummy)->Args({25, 100, 30});
 
 BENCHMARK_MAIN();
