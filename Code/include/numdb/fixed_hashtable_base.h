@@ -162,6 +162,19 @@ class FixedHashtableBase {
 		return true;
 	}
 
+	size_t capacity() const {
+		return max_count_;
+	}
+
+	size_t size() const {
+		return count_;
+	}
+
+	size_t elementSize() const {
+		return static_cast<size_t>(
+				sizeof(Node) + std::ceil(sizeof(Node*) / load_factor_));
+	}
+
 	void dump(std::ostream& out) const {
 		for (size_t i = 0; i < buckets_.size(); i++) {
 			out << '[' << i << ']';
