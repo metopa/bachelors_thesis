@@ -14,6 +14,33 @@
 
 #include "numdb/utils.h"
 
+template <typename NodeT>
+class mockParentPointer {
+  public:
+	static constexpr bool hasParentPtr() {
+		return false;
+	}
+	void setParent(NodeT* ptr) {}
+	NodeT* getParent() {
+		return nullptr;
+	}
+};
+
+template <typename NodeT>
+class parentPointer {
+	NodeT* ptr_ = nullptr;
+  public:
+	static constexpr bool hasParentPtr() {
+		return true;
+	}
+	void setParent(NodeT* ptr) {
+		ptr_ = ptr;
+	}
+	NodeT* getParent() {
+		return ptr_;
+	}
+};
+
 //TODO Allocate memory in a single block
 //TODO Add removal strategy
 //TODO Add timestamp
