@@ -17,7 +17,7 @@ template <typename KeyT, typename ValueT, typename HasherT>
 class FixedHashtableFairLRU;
 
 template <typename KeyT, typename ValueT, typename HasherT>
-struct HashtableTraits<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
+struct CacheContainerTraits<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
 	typedef KeyT key_t;
 	typedef ValueT value_t;
 	typedef HasherT hasher_t;

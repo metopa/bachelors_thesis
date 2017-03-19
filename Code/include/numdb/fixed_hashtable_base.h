@@ -21,10 +21,10 @@
 template <typename CrtpDerived>
 class FixedHashtableBase {
   public:
-	typedef typename HashtableTraits<CrtpDerived>::key_t key_t;
-	typedef typename HashtableTraits<CrtpDerived>::value_t value_t;
-	typedef typename HashtableTraits<CrtpDerived>::hasher_t hasher_t;
-	typedef typename HashtableTraits<CrtpDerived>::node_base_t node_base_t;
+	typedef typename CacheContainerTraits<CrtpDerived>::key_t key_t;
+	typedef typename CacheContainerTraits<CrtpDerived>::value_t value_t;
+	typedef typename CacheContainerTraits<CrtpDerived>::hasher_t hasher_t;
+	typedef typename CacheContainerTraits<CrtpDerived>::node_base_t node_base_t;
 	typedef std::experimental::optional<value_t> optional_value_t;
 
 	class Node : public node_base_t {

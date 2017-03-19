@@ -10,7 +10,7 @@
 struct Empty{};
 
 template <class T>
-struct HashtableTraits {
+struct CacheContainerTraits {
 	static_assert(sizeof(T) < 0, "No traits specialization for this type");
 };
 
