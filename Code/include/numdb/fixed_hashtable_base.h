@@ -77,7 +77,10 @@ class FixedHashtableBase {
 			buckets_(static_cast<size_t>(element_count / load_factor), nullptr),
 			max_count_(element_count),
 			load_factor_(load_factor),
-			count_(0) {}
+			count_(0) {
+		if (buckets_.size() == 0)
+			throw std::invalid_argument("Can't construct fixed hashtable: insufficient memory");
+	}
 
   public:
 	FixedHashtableBase(const FixedHashtableBase&) = delete;
