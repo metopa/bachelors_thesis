@@ -9,7 +9,8 @@
 #include "numdb/fixed_hashtable_fair_lru.h"
 
 TEST(HashTable_FairLRU, basic) {
-	FixedHashtableFairLRU<int, std::string> ht(10, 20);
+	using container_t = FixedHashtableFairLRU<int, std::string>;
+	container_t ht(20 * container_t::elementSize(0.5), 0.5);
 	ht.insert(10, "AAA");
 	auto result = ht.find(10);
 	ASSERT_EQ(bool(result), true);
@@ -19,8 +20,11 @@ TEST(HashTable_FairLRU, basic) {
 }
 
 TEST(HashTable_FairLRU, tuple_key) {
-	FixedHashtableFairLRU<std::tuple<double, double, double>,
-			std::string> ht(10, 20);
+	using container_t = FixedHashtableFairLRU<
+			std::tuple<double, double, double>,
+			std::string>;
+	container_t ht(20 * container_t::elementSize(0.5), 0.5);
+
 	ht.insert(std::make_tuple(0., 0., 0.), "000");
 	ht.insert(std::make_tuple(1., 0., 0.), "100");
 	ht.insert(std::make_tuple(0., 1., 0.), "010");
@@ -46,7 +50,8 @@ TEST(HashTable_FairLRU, tuple_key) {
 }
 
 TEST(HashTable_FairLRU, limit_element_count_1) {
-	FixedHashtableFairLRU<int, int> ht(5, 10);
+	using container_t = FixedHashtableFairLRU<int, int>;
+	container_t ht(10 * container_t::elementSize(0.5), 0.5);
 	for (int i = 10; i < 25; i++)
 		ht.insert(i, i);
 
@@ -63,7 +68,8 @@ TEST(HashTable_FairLRU, limit_element_count_1) {
 }
 
 TEST(HashTable_FairLRU, lru_test) {
-	FixedHashtableFairLRU<int, int> ht(5, 10);
+	using container_t = FixedHashtableFairLRU<int, int>;
+	container_t ht(10 * container_t::elementSize(0.5), 0.5);
 	for (int i = 10; i < 25; i++)
 		ht.insert(i, i);
 
