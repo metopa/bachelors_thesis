@@ -89,7 +89,6 @@ class SplayTreeBase {
 		value_t value_;
 	};
 
-	SplayTreeBase(size_t max_node_count, comparator_t comparator) :
 	static constexpr size_t maxElemCountForCapacity(size_t capacity) {
 		return capacity / sizeof(Node);
 	}
@@ -98,8 +97,9 @@ class SplayTreeBase {
 		return sizeof(Node);
 	}
 
+	SplayTreeBase(size_t available_memory, comparator_t&& comparator) :
 			root_(nullptr), node_count_(0),
-			max_node_count_(max_node_count),
+			max_node_count_(maxElemCountForCapacity(available_memory)),
 			comparator_(std::move(comparator)) {}
 
 	SplayTreeBase(const SplayTreeBase&) = delete;
