@@ -10,8 +10,8 @@
 #include "murmurhash2/all.h"
 
 #include "fixed_hashtable_base.h"
-#include "utils.h"
-#include "fair_lru.h"
+#include "numdb/utils.h"
+#include "numdb/fair_lru.h"
 
 template <typename KeyT, typename ValueT, typename HasherT>
 class FixedHashtableFairLRU;

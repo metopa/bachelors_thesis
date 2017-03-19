@@ -7,7 +7,7 @@
 #include <random>
 
 #include "benchmark/benchmark.h"
-#include "numdb/fixed_hashtable_function_cache.h"
+#include "numdb/hash_table/fixed_hashtable_function_cache.h"
 
 #include "numdb/numdb.h"
 #include "utils.h"

@@ -6,7 +6,7 @@
 
 
 #include <gtest/gtest.h>
-#include "numdb/fixed_hashtable_fair_lru.h"
+#include "numdb/hash_table/fixed_hashtable_fair_lru.h"
 
 TEST(HashTable_FairLRU, basic) {
 	using container_t = FixedHashtableFairLRU<int, std::string>;

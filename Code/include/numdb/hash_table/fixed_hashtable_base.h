@@ -13,7 +13,7 @@
 #include <ostream>
 #include <experimental/optional>
 
-#include "utils.h"
+#include "numdb/utils.h"
 
 //TODO Restrict class to use a power of 2 as a table size
 //TODO Use bit masking instead of integer division

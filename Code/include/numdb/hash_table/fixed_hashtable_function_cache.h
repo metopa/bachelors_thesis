@@ -10,9 +10,9 @@
 
 #include <murmurhash2/all.h>
 #include <function_traits/functional_unwrap.hpp>
-#include "function_cache_core.h"
-#include "event_counter.h"
-#include "utils.h"
+#include "numdb/function_cache_core.h"
+#include "numdb/event_counter.h"
+#include "numdb/utils.h"
 #include "fixed_hashtable_fair_lru.h"
 
 template <
