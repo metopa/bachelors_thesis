@@ -16,11 +16,11 @@ struct EmptyEventCounter {
 };
 
 struct BasicEventCounter {
-	uint64_t total_retrieves = 0;
+	uint64_t total_retrievals = 0;
 	uint64_t user_func_invocations = 0;
 
 	void retrieve() {
-		total_retrieves++;
+		total_retrievals++;
 	}
 
 	void invokeUserFunc() {
@@ -28,11 +28,11 @@ struct BasicEventCounter {
 	}
 
 	double cacheEfficiency() const {
-		return 1 - static_cast<double>(user_func_invocations) / total_retrieves;
+		return 1 - static_cast<double>(user_func_invocations) / total_retrievals;
 	}
 
 	friend std::ostream& operator <<(std::ostream& out, const BasicEventCounter& ec) {
-		return out << "Total: " << ec.total_retrieves << std::endl
+		return out << "Total: " << ec.total_retrievals << std::endl
 				   << "User func calls: " << ec.user_func_invocations << std::endl
 				   << "Cache efficiency: " << ec.cacheEfficiency() << std::endl;
 	}
