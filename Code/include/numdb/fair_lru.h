@@ -11,10 +11,6 @@ class FairLRU {
   public:
 	struct Node {
 		friend class FairLRU;
-
-		Node* next;
-		Node* prev;
-
 		Node() : next(nullptr), prev(nullptr) {}
 
 	  protected:
@@ -24,47 +20,21 @@ class FairLRU {
 		~Node() = default;
 
 	  private:
-		Node* extract() {
-			prev->next = next;
-			if (next)
-				next->prev = prev;
-			return this;
-		}
+		Node* extract();
+		void insertAfter(Node* node);
 
-		void insertAfter(Node* node) {
-			prev = node;
-			next = node->next;
-			node->next = this;
-			if (next)
-				next->prev = this;
-		}
+		Node* next;
+		Node* prev;
 	};
 
-	FairLRU() {
-		tail_.insertAfter(&head_);
-	}
-
+	FairLRU();
 	FairLRU(const FairLRU&) = delete;
 	FairLRU& operator =(const FairLRU&) = delete;
 
-	Node* extractLruNode() {
-		if (head_.next == &tail_)
-			return nullptr;
-		return head_.next->extract();
-	}
-
-	void markRecentlyUsed(Node* node) {
-		node->extract();
-		insertNode(node);
-	}
-
-	void insertNode(Node* node) {
-		node->insertAfter(tail_.prev);
-	}
-
-	void extractNode(Node* node) {
-		node->extract();
-	}
+	Node* extractLruNode();
+	void markRecentlyUsed(Node* node);
+	void insertNode(Node* node);
+	void extractNode(Node* node);
 
   private:
 	Node head_;
