@@ -20,7 +20,4 @@ target_link_libraries(unit_tests numdb ${GTEST_BOTH_LIBRARIES} pthread)
 add_executable(bench benchmark/bench.cpp)
 target_link_libraries(bench numdb benchmark pthread)
 
-add_executable(playground playground.cpp)
-target_link_libraries(playground numdb)
-
 add_test(UnitTests unit_tests)
