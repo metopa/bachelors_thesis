@@ -20,8 +20,11 @@ template <
 class FunctionCacheCore {
   public:
 	using user_func_t = UserFuncT;
-	using return_t = std::result_of<UserFuncT>;
 	using args_tuple_t = UserFuncArgsTupleT;
+	using return_t =
+	decltype(std::experimental::apply(
+			std::declval<UserFuncT>(),
+			std::declval<args_tuple_t>()));
 	using event_counter_t = EventCounterT;
 
 	EventCounterT& getEventCounter() {
