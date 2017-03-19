@@ -44,7 +44,7 @@ class DummyFunctionCache {
 		static_assert(std::is_convertible<std::tuple<Args...>, typename core_t::args_tuple_t>::value,
 					  "Cannot convert provided arguments.");
 
-		core_.getEventCounter().invokeUserFunc();
+		core_.getEventCounter().retrieve();
 		return core_.invokeUserFunc(std::forward_as_tuple(args...));
 	}
   private:

@@ -35,7 +35,7 @@ class FunctionCacheCore {
 	FunctionCacheCore& operator =(const FunctionCacheCore&) = delete;
 
 	auto invokeUserFunc(UserFuncArgsTupleT&& args) {
-		event_counter_.retrieve();
+		event_counter_.invokeUserFunction();
 		return std::experimental::apply(user_func_, std::move(args));
 	}
 
