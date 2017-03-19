@@ -37,8 +37,8 @@ class FixedHashtableFairLRU :
 
 	friend base_t;
 
-	FixedHashtableFairLRU(size_t table_size, size_t max_element_count) :
-			base_t(table_size, max_element_count) {}
+	FixedHashtableFairLRU(size_t available_memory, double load_factor) :
+			base_t(available_memory, load_factor) {}
 
   protected:
 	void nodeAccessedImpl(node_t* node) {
