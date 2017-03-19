@@ -8,29 +8,35 @@
 #define NUMDB_SPLAY_TREE_BASE_H
 
 #include <functional>
-#include <experimental/optional>
 #include <cassert>
 #include <ostream>
+#include <experimental/optional>
 
-#include "splay_tree_strategy.h"
+#include "numdb/utils.h"
 
 //TODO Allocate memory in a single block
 //TODO Add removal strategy
 //TODO Add timestamp
 //TODO Add check for splay strategy methods
-template <typename KeyT, typename ValueT,
-		typename SplayStrategyT,
-		typename ComparatorT = std::less<KeyT>>
+template <typename CrtpDerived>
 class SplayTreeBase {
   public:
+	using traits = CacheContainerTraits<CrtpDerived>;
+	using key_t = typename traits::key_t;
+	using value_t = typename traits::value_t;
+	using comparator_t = typename traits::comparator_t;
+	using strategy_t = typename traits::strategy_t;
+	using node_base_t = typename traits::node_base_t;
+	using optional_value_t = std::experimental::optional<value_t>;
+
 	//Empty member optimization http://www.cantrip.org/emptyopt.html
-	class Node : public SplayStrategyT {
+	class Node : public strategy_t, public node_base_t {
 		friend class SplayTreeBase;
 
-		Node(KeyT key, ValueT value,
+		Node(key_t key, value_t value,
 			 Node* left = nullptr, Node* right = nullptr,
-			 SplayStrategyT strategy = SplayStrategyT()) :
-				SplayStrategyT(strategy),
+			 strategy_t strategy = strategy_t()) :
+				strategy_t(strategy),
 				key_(std::move(key)),
 				value_(std::move(value)),
 				left_(left), right_(right) {}
@@ -40,19 +46,19 @@ class SplayTreeBase {
 			delete right_;
 		}
 
-		const KeyT& key() const {
+		const key_t& key() const {
 			return key_;
 		}
 
-		KeyT& key() {
+		key_t& key() {
 			return key_;
 		}
 
-		const ValueT& value() const {
+		const value_t& value() const {
 			return value_;
 		}
 
-		ValueT& value() {
+		value_t& value() {
 			return value_;
 		}
 
@@ -77,15 +83,13 @@ class SplayTreeBase {
 		// This ordering is intended to keep
 		// the most frequently accessed members
 		// at the beginning of the object
-		KeyT key_;
+		key_t key_;
 		Node* left_;
 		Node* right_;
-		ValueT value_;
+		value_t value_;
 	};
 
-	using optional_value_t = std::experimental::optional<ValueT>;
-
-	SplayTreeBase(size_t max_node_count, ComparatorT comparator = ComparatorT()) :
+	SplayTreeBase(size_t max_node_count, comparator_t comparator) :
 			root_(nullptr), node_count_(0),
 			max_node_count_(max_node_count),
 			comparator_(std::move(comparator)) {}
@@ -101,7 +105,7 @@ class SplayTreeBase {
 		return capacity / sizeof(Node);
 	}
 
-	optional_value_t find(const KeyT& key) {
+	optional_value_t find(const key_t& key) {
 		EChildType tmp;
 		Node* node = findImplSplay(key, root_, tmp, true);
 		if (!node)
@@ -113,11 +117,11 @@ class SplayTreeBase {
 	/*
 	 * This approach because we assume that an important node is not going to be deleted.
 	 */
-	Node* extractNode(const KeyT& key) {
+	Node* extractNode(const key_t& key) {
 		return extractNodeImpl(findImpl(key, root_));
 	}
 
-	bool remove(const KeyT& key) {
+	bool remove(const key_t& key) {
 		Node* n = extractNode(key);
 		if (!n)
 			return false;
@@ -125,7 +129,7 @@ class SplayTreeBase {
 		return true;
 	}
 
-	bool insert(KeyT key, ValueT value) {
+	bool insert(value_t key, value_t value) {
 		return insertNode(new Node(std::move(key), std::move(value)));
 	}
 
@@ -176,7 +180,7 @@ class SplayTreeBase {
 		return node;
 	}
 
-	Node*& findImpl(const KeyT& key, Node*& node) {
+	Node*& findImpl(const key_t& key, Node*& node) {
 		if (!node)
 			return node;
 		if (comparator_(key, node->key_))
@@ -188,7 +192,7 @@ class SplayTreeBase {
 			return node;
 	}
 
-	Node* findImplSplay(const KeyT& key, Node*& node,
+	Node* findImplSplay(const key_t& key, Node*& node,
 						EChildType& child_type, bool is_root) {
 		if (!node)
 			return nullptr;
@@ -321,7 +325,7 @@ class SplayTreeBase {
 	Node* root_;
 	size_t node_count_;
 	const size_t max_node_count_;
-	ComparatorT comparator_;
+	comparator_t comparator_;
 };
 
 #endif //NUMDB_SPLAY_TREE_BASE_H
