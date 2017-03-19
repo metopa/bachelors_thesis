@@ -61,16 +61,25 @@ class FixedHashtableBase {
 		value_t value_;
 	};
 
-	static constexpr size_t maxElemCountForCapacity(size_t capacity, double load_factor = 2) {
+	static constexpr size_t maxElemCountForCapacity(
+			size_t capacity, double load_factor) {
 		return static_cast<size_t>(
 				capacity / (sizeof(Node) + sizeof(Node*) / load_factor));
 	}
 
-	FixedHashtableBase(size_t table_size, size_t max_element_count) :
-			buckets_(table_size, nullptr),
-			max_count_(max_element_count),
+	FixedHashtableBase(size_t available_memory, double load_factor) :
+			FixedHashtableBase(
+					maxElemCountForCapacity(available_memory, load_factor),
+					load_factor, 0) {}
+
+  private:
+	FixedHashtableBase(size_t element_count, double load_factor, char dummy) :
+			buckets_(static_cast<size_t>(element_count / load_factor), nullptr),
+			max_count_(element_count),
+			load_factor_(load_factor),
 			count_(0) {}
 
+  public:
 	FixedHashtableBase(const FixedHashtableBase&) = delete;
 	FixedHashtableBase& operator =(const FixedHashtableBase&) = delete;
 
@@ -210,9 +219,11 @@ class FixedHashtableBase {
 	void nodeInsertedImpl(Node* node);
 	void nodeExtractedImpl(Node* node);
 	Node* getLruNodeImpl();
+
   private:
 	std::vector<Node*> buckets_;
 	const size_t max_count_;
+	const double load_factor_;
 	size_t count_;
 };
 
