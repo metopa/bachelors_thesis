@@ -22,12 +22,12 @@ template <
 		typename HasherT = mmh2::MurmurHash2<UserFuncArgsTupleT>
 >
 class FixedHashtableFunctionCache {
-	typedef FunctionCacheCore<UserFuncT,
-			UserFuncArgsTupleT, EventCounterT> core_t;
-	typedef FixedHashtableFairLRU<
+	using core_t = FunctionCacheCore
+			<UserFuncT, UserFuncArgsTupleT, EventCounterT>;
+	using container_t = FixedHashtableFairLRU<
 			typename core_t::args_tuple_t,
 			typename core_t::return_t,
-			HasherT> container_t;
+			HasherT>;
 
   public:
 	FixedHashtableFunctionCache(UserFuncT user_func,

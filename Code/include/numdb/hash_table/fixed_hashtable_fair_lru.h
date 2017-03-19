@@ -18,10 +18,10 @@ class FixedHashtableFairLRU;
 
 template <typename KeyT, typename ValueT, typename HasherT>
 struct CacheContainerTraits<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
-	typedef KeyT key_t;
-	typedef ValueT value_t;
-	typedef HasherT hasher_t;
-	typedef FairLRU::Node node_base_t;
+	using key_t = KeyT;
+	using value_t = ValueT;
+	using hasher_t = HasherT;
+	using node_base_t = FairLRU::Node;
 };
 
 template <typename KeyT, typename ValueT,
@@ -30,10 +30,9 @@ class FixedHashtableFairLRU :
 		public FixedHashtableBase<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
 
   public:
-	typedef FixedHashtableBase<
-			FixedHashtableFairLRU<KeyT, ValueT, HasherT>
-	> base_t;
-	typedef typename base_t::Node node_t;
+	using base_t = FixedHashtableBase<
+			FixedHashtableFairLRU<KeyT, ValueT, HasherT>>;
+	using node_t = typename base_t::Node;
 
 	friend base_t;
 
