@@ -1,11 +1,11 @@
-/** @file splay_tree.h
+/** @file splay_tree_base.h
  *  @brief
  *
  *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
-#ifndef NUMDB_SPLAY_TREE_H
-#define NUMDB_SPLAY_TREE_H
+#ifndef NUMDB_SPLAY_TREE_BASE_H
+#define NUMDB_SPLAY_TREE_BASE_H
 
 #include <functional>
 #include <experimental/optional>
@@ -21,11 +21,11 @@
 template <typename KeyT, typename ValueT,
 		typename SplayStrategyT,
 		typename ComparatorT = std::less<KeyT>>
-class SplayTree {
+class SplayTreeBase {
   public:
 	//Empty member optimization http://www.cantrip.org/emptyopt.html
 	class Node : public SplayStrategyT {
-		friend class SplayTree;
+		friend class SplayTreeBase;
 
 		Node(KeyT key, ValueT value,
 			 Node* left = nullptr, Node* right = nullptr,
@@ -85,15 +85,15 @@ class SplayTree {
 
 	using optional_value_t = std::experimental::optional<ValueT>;
 
-	SplayTree(size_t max_node_count, ComparatorT comparator = ComparatorT()) :
+	SplayTreeBase(size_t max_node_count, ComparatorT comparator = ComparatorT()) :
 			root_(nullptr), node_count_(0),
 			max_node_count_(max_node_count),
 			comparator_(std::move(comparator)) {}
 
-	SplayTree(const SplayTree&) = delete;
-	SplayTree& operator =(const SplayTree&) = delete;
+	SplayTreeBase(const SplayTreeBase&) = delete;
+	SplayTreeBase& operator =(const SplayTreeBase&) = delete;
 
-	~SplayTree() {
+	~SplayTreeBase() {
 		delete root_;
 	}
 
@@ -324,4 +324,4 @@ class SplayTree {
 	ComparatorT comparator_;
 };
 
-#endif //NUMDB_SPLAY_TREE_H
+#endif //NUMDB_SPLAY_TREE_BASE_H
