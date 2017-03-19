@@ -53,7 +53,7 @@ class FixedHashtableFairLRU :
 	}
 
 	node_t* getLruNodeImpl() {
-		node_t* candidate = static_cast<node_t*>(lru_manager_.extractLruNode());
+		return static_cast<node_t*>(lru_manager_.extractLruNode());
 	}
 
   private:
