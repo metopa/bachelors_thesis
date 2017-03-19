@@ -4,8 +4,7 @@
  *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
-#include "fair_lru.h"
-
+#include "numdb/fair_lru.h"
 
 FairLRU::Node* FairLRU::Node::extract() {
 	prev->next = next;
