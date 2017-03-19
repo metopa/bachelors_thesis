@@ -67,6 +67,11 @@ class FixedHashtableBase {
 				capacity / (sizeof(Node) + sizeof(Node*) / load_factor));
 	}
 
+	static constexpr size_t elementSize(double load_factor) {
+		return static_cast<size_t>(
+				sizeof(Node) + std::ceil(sizeof(Node*) / load_factor));
+	}
+
 	FixedHashtableBase(size_t available_memory, double load_factor) :
 			FixedHashtableBase(
 					maxElemCountForCapacity(available_memory, load_factor),
@@ -174,8 +179,7 @@ class FixedHashtableBase {
 	}
 
 	size_t elementSize() const {
-		return static_cast<size_t>(
-				sizeof(Node) + std::ceil(sizeof(Node*) / load_factor_));
+		return elementSize(load_factor_);
 	}
 
 	void dump(std::ostream& out) const {
