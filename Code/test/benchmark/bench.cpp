@@ -12,10 +12,11 @@
 #include "numdb/numdb.h"
 #include "utils.h"
 
-double computeHitRate(size_t total_retrievals,
-					  size_t user_func_calls) {
+double computeScore(size_t total_retrievals,
+					size_t user_func_calls, double area_under_curve) {
 
-	return (total_retrievals - user_func_calls) / (double) total_retrievals * 100;
+	return (total_retrievals - user_func_calls) / (double) total_retrievals * 100
+		   / area_under_curve;
 }
 
 /**
@@ -48,8 +49,8 @@ void BM_Dummy(benchmark::State& state) {
 
 	state.SetItemsProcessed(state.iterations());
 	state.counters["capacity"] = max_element_capacity;
-	state.counters["hitrate"] = computeHitRate(cache.eventCounter().total_retrievals,
-											   cache.eventCounter().user_func_invocations);
+	state.counters["score"] = computeScore(cache.eventCounter().total_retrievals,
+										   cache.eventCounter().user_func_invocations, area);
 }
 
 /**
@@ -81,8 +82,8 @@ void BM_Hashtable(benchmark::State& state) {
 
 	state.SetItemsProcessed(state.iterations());
 	state.counters["capacity"] = cache.capacity();
-	state.counters["hitrate"] = computeHitRate(cache.eventCounter().total_retrievals,
-											   cache.eventCounter().user_func_invocations);
+	state.counters["score"] = computeScore(cache.eventCounter().total_retrievals,
+										   cache.eventCounter().user_func_invocations, area);
 }
 
 BENCHMARK(BM_Hashtable)->Args({25, 100, 30})->Args({25, 100, 50})->Args({25, 100, 70});
