@@ -5,9 +5,10 @@
  */
 
 #include <random>
+#include <numdb/function_cache.h>
+#include <numdb/hash_table/fixed_hashtable_fair_lru.h>
 
 #include "benchmark/benchmark.h"
-#include "numdb/hash_table/fixed_hashtable_function_cache.h"
 
 #include "numdb/numdb.h"
 #include "utils.h"
@@ -72,7 +73,7 @@ void BM_Hashtable(benchmark::State& state) {
 	std::mt19937 e(r());
 	std::normal_distribution<double> dist(0, sigma);
 
-	FixedHashtableFunctionCache<UserFunc, BasicEventCounter>
+	FunctionCache<UserFunc, FixedHashtableFairLRUTypeHolder<>, BasicEventCounter>
 			cache(UserFunc(state.range(0)), mem);
 
 	while (state.KeepRunning()) {
