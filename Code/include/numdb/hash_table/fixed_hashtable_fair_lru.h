@@ -41,13 +41,14 @@ class FixedHashtableFairLRU :
 
 	friend base_t;
 
-	FixedHashtableFairLRU(size_t available_memory, double load_factor) :
+	FixedHashtableFairLRU(size_t available_memory, double load_factor = 2) :
 			base_t(available_memory, load_factor) {}
 
   protected:
 	void nodeAccessedImpl(node_t* node) {
 		lru_manager_.markRecentlyUsed(node);
 	}
+
 	void nodeInsertedImpl(node_t* node) {
 		lru_manager_.insertNode(node);
 	}
