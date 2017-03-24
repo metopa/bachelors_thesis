@@ -1,39 +1,37 @@
-/** @file fixed_hashtable_function_cache.h
+/** @file function_cache.h
  *  @brief
  *
  *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
-#ifndef NUMDB_FIXED_HASHTABLE_FUNCTION_CACHE_H
-#define NUMDB_FIXED_HASHTABLE_FUNCTION_CACHE_H
-
+#ifndef NUMDB_FUNCTION_CACHE_H
+#define NUMDB_FUNCTION_CACHE_H
 
 #include <murmurhash2/all.h>
 #include <function_traits/functional_unwrap.hpp>
 #include "numdb/function_cache_core.h"
 #include "numdb/event_counter.h"
 #include "numdb/utils.h"
-#include "fixed_hashtable_fair_lru.h"
 
 template <
 		typename UserFuncT,
+		typename ContainerTypeHolder,
 		typename EventCounterT = EmptyEventCounter,
-		typename UserFuncArgsTupleT = fu::argument_tuple_type_of_t<UserFuncT>,
-		typename HasherT = mmh2::MurmurHash2<UserFuncArgsTupleT>
+		typename UserFuncArgsTupleT = fu::argument_tuple_type_of_t<UserFuncT>
 >
-class FixedHashtableFunctionCache {
+class FunctionCache {
 	using core_t = FunctionCacheCore
 			<UserFuncT, UserFuncArgsTupleT, EventCounterT>;
-	using container_t = FixedHashtableFairLRU<
-			typename core_t::args_tuple_t,
-			typename core_t::return_t,
-			HasherT>;
+	using container_t = typename ContainerTypeHolder::template container_t<
+			typename core_t::args_tuple_t, typename core_t::return_t>;
 
   public:
-	FixedHashtableFunctionCache(UserFuncT user_func,
-								size_t available_memory, double load_factor = 0.5) :
+	template <typename... ContainerArgs>
+	FunctionCache(UserFuncT user_func, size_t available_memory,
+				  ContainerArgs&& ... container_args) :
 			core_(std::move(user_func)),
-			container_(available_memory, load_factor) {}
+			container_(available_memory,
+					   std::forward<ContainerArgs>(container_args)...) {}
 
 	size_t capacity() const {
 		return container_.capacity();
@@ -43,9 +41,8 @@ class FixedHashtableFunctionCache {
 		return container_.size();
 	}
 
-
 	static constexpr bool isThreadsafe() {
-		return false;
+		return container_t::isThreadsafe();
 	}
 
 	size_t elementSize() const {
@@ -54,8 +51,8 @@ class FixedHashtableFunctionCache {
 
 	double elementSizeOverhead() const {
 		return 1 - static_cast<double>(sizeof(typename core_t::args_tuple_t) +
-									   sizeof(typename core_t::return_t)
-				   ) / elementSize();
+									   sizeof(typename core_t::return_t))
+				   / elementSize();
 	}
 
 	EventCounterT& eventCounter() {
@@ -89,5 +86,4 @@ class FixedHashtableFunctionCache {
 	container_t container_;
 };
 
-
-#endif //NUMDB_FIXED_HASHTABLE_FUNCTION_CACHE_H
+#endif //NUMDB_FUNCTION_CACHE_H
