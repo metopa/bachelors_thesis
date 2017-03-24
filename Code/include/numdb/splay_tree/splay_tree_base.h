@@ -53,36 +53,32 @@ class SplayTreeBase {
 	using value_t = typename traits::value_t;
 	using comparator_t = typename traits::comparator_t;
 	using strategy_t = typename traits::strategy_t;
+	template <typename NodeT>
+	using node_parent_policy_t = typename traits::template node_ref_to_self_policy_t<NodeT>;
 	using node_base_t = typename traits::node_base_t;
 	using optional_value_t = std::experimental::optional<value_t>;
 
 	//Empty member optimization http://www.cantrip.org/emptyopt.html
-	class Node : public strategy_t, public node_base_t {
+	class Node :
+			public strategy_t,
+			public node_base_t,
+			public node_parent_policy_t<Node> {
 		friend class SplayTreeBase;
 
 		Node(key_t key, value_t value,
-			 Node* left = nullptr, Node* right = nullptr,
 			 strategy_t strategy = strategy_t()) :
 				strategy_t(strategy),
 				key_(std::move(key)),
 				value_(std::move(value)),
-				left_(left), right_(right) {}
+				left_(nullptr), right_(nullptr) {}
 
 		~Node() {
 			delete left_;
 			delete right_;
 		}
 
-		const key_t& key() const {
-			return key_;
-		}
-
 		key_t& key() {
 			return key_;
-		}
-
-		const value_t& value() const {
-			return value_;
 		}
 
 		value_t& value() {
@@ -177,8 +173,9 @@ class SplayTreeBase {
 		Node*& place_to_insert = findImpl(node->key_, root_);
 		if (place_to_insert)
 			return false;
-		node_count_++;
 		place_to_insert = node;
+		node->setRefToSelf(place_to_insert);
+		nodeInserted(node);
 		return true;
 	}
 
@@ -204,7 +201,7 @@ class SplayTreeBase {
 			return node;
 		}
 		if (!node->right_) {
-			node_ref = node->left_;
+		node_ref = node->left_;
 			node->left_ = nullptr;
 			return node;
 		}
@@ -361,6 +358,45 @@ class SplayTreeBase {
 			pred = &(node->right_);
 		return *pred;
 	}
+
+  private:
+	void nodeAccessed(Node* node) {
+		static_cast<CrtpDerived*>(this)->nodeAccessedImpl(node);
+	}
+
+	void nodeVisited(Node* node) {
+		static_cast<CrtpDerived*>(this)->nodeVisitedImpl(node);
+	}
+
+	void nodeInserted(Node* node) {
+		node_count_++;
+		assert(node_count_ <= max_node_count_);
+		static_cast<CrtpDerived*>(this)->nodeInsertedImpl(node);
+	}
+
+	void nodeExtracted(Node* node) {
+		assert(node_count_ > 0);
+		node_count_--;
+		static_cast<CrtpDerived*>(this)->nodeExtractedImpl(node);
+	}
+
+	Node* extractLruNode() {
+		assert(node_count_ == max_node_count_);
+		Node* candidate = static_cast<CrtpDerived*>(this)->getLruNodeImpl();
+		assert(candidate != nullptr);
+
+		assert(false);
+		return nullptr;
+	}
+
+  protected:
+	///Following methods would be implemented in derived classes.
+	///They are called through Curiously Recurring Template Pattern
+	void nodeAccessedImpl(Node* node);
+	void nodeVisitedImpl(Node* node);
+	void nodeInsertedImpl(Node* node);
+	void nodeExtractedImpl(Node* node);
+	Node* getLruNodeImpl();
 
 	Node* root_;
 	size_t node_count_;
