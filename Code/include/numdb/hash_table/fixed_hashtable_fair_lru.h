@@ -24,8 +24,13 @@ struct CacheContainerTraits<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
 	using node_base_t = FairLRU::Node;
 };
 
-template <typename KeyT, typename ValueT,
-		typename HasherT = mmh2::MurmurHash2<KeyT>>
+template <typename HasherT = mmh2::MurmurHash2<void>>
+struct FixedHashtableFairLRUTypeHolder {
+	template <typename KeyT, typename ValueT>
+	using container_t = FixedHashtableFairLRU<KeyT, ValueT, HasherT>;
+};
+
+template <typename KeyT, typename ValueT, typename HasherT>
 class FixedHashtableFairLRU :
 		public FixedHashtableBase<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
 
