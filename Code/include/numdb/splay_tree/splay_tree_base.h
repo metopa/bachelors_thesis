@@ -15,28 +15,28 @@
 #include "numdb/utils.h"
 
 template <typename NodeT>
-class mockParentPointer {
+class EmptyRefToSelfPolicy {
   public:
-	static constexpr bool hasParentPtr() {
+	static constexpr bool hasRefToSelf() {
 		return false;
 	}
-	void setParent(NodeT* ptr) {}
-	NodeT* getParent() {
+	void setRefToSelf(NodeT* ptr) {}
+	NodeT** getRefToSelf() {
 		return nullptr;
 	}
 };
 
 template <typename NodeT>
-class parentPointer {
-	NodeT* ptr_ = nullptr;
+class realRefToSelfPolicy {
+	NodeT** ptr_ = nullptr;
   public:
-	static constexpr bool hasParentPtr() {
+	static constexpr bool hasRefToSelf() {
 		return true;
 	}
-	void setParent(NodeT* ptr) {
+	void setRefToSelf(NodeT** ptr) {
 		ptr_ = ptr;
 	}
-	NodeT* getParent() {
+	NodeT** getRefToSelf() {
 		return ptr_;
 	}
 };
