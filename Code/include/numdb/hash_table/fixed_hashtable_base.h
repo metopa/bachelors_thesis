@@ -11,6 +11,7 @@
 #include <cmath>
 #include <vector>
 #include <ostream>
+#include <cassert>
 #include <experimental/optional>
 
 #include "numdb/utils.h"
@@ -95,6 +96,10 @@ class FixedHashtableBase {
 	~FixedHashtableBase() {
 		for (Node* n : buckets_)
 			delete n;
+	}
+
+	constexpr static bool isThreadsafe() {
+		return false;
 	}
 
 	optional_value_t find(const key_t& key) {

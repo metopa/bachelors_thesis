@@ -124,6 +124,10 @@ class SplayTreeBase {
 		return sizeof(Node);
 	}
 
+	static constexpr bool isThreadsafe() {
+		return false;
+	}
+
 	SplayTreeBase(size_t available_memory, comparator_t&& comparator) :
 			root_(nullptr), node_count_(0),
 			max_node_count_(maxElemCountForCapacity(available_memory)),
