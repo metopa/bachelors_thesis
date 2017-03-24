@@ -87,7 +87,7 @@ void BM_Hashtable(benchmark::State& state) {
 										   cache.eventCounter().user_func_invocations, area);
 }
 
-BENCHMARK(BM_Hashtable)->Args({25, 100, 30})->Args({25, 100, 50})->Args({25, 100, 70});
+BENCHMARK(BM_Hashtable)->Args({25, 100, 30})->Args({25, 100, 50})->Args({25, 100, 70})->Args({25, 100, 90});
 BENCHMARK(BM_Dummy)->Args({25, 100, 30});
 
 BENCHMARK_MAIN();
