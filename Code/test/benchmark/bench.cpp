@@ -55,9 +55,12 @@ void BM(benchmark::State& state) {
 										   cache.eventCounter().user_func_invocations, area);
 }
 
-BENCHMARK_TEMPLATE(BM, FixedHashtableFairLRUTypeHolder<>)->Args({27, 100, 70});
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<CanonicalSplayStrategy>)->Args({27, 100, 70});
+BENCHMARK_TEMPLATE(BM, FixedHashtableFairLRUTypeHolder<>)->Args({27, 10, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<CanonicalSplayStrategy>)->Args({27, 10, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<AccessCountSplayStrategy>)->Args({27, 10, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<CanonicalSplayStrategy>)->Args({27, 10, 70});
 BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->Args({27, 100, 70});
-BENCHMARK_TEMPLATE(BM, DummyContainerTypeHolder)->Args({27, 100, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<AccessCountSplayStrategy>)->Args({27, 10, 70});
+BENCHMARK_TEMPLATE(BM, DummyContainerTypeHolder)->Args({27, 10, 70});
 
 BENCHMARK_MAIN();
