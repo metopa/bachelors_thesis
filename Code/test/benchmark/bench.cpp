@@ -7,6 +7,7 @@
 #include <random>
 #include <numdb/function_cache.h>
 #include <numdb/hash_table/fixed_hashtable_fair_lru.h>
+#include <numdb/dummy_container.h>
 
 #include "benchmark/benchmark.h"
 
@@ -59,7 +60,8 @@ void BM_Dummy(benchmark::State& state) {
  * @arg state.range(1) available memory (in KiB)
  * @arg state.range(2) desired area under curve (in percents)
  */
-void BM_Hashtable(benchmark::State& state) {
+template <class ContainerTypeHolder>
+void BM(benchmark::State& state) {
 	using UserFunc = Fibonacci<int, double>;
 
 	size_t mem = static_cast<size_t>(state.range(1)) * 1024;
@@ -73,7 +75,7 @@ void BM_Hashtable(benchmark::State& state) {
 	std::mt19937 e(r());
 	std::normal_distribution<double> dist(0, sigma);
 
-	FunctionCache<UserFunc, FixedHashtableFairLRUTypeHolder<>, BasicEventCounter>
+	FunctionCache<UserFunc, ContainerTypeHolder, BasicEventCounter>
 			cache(UserFunc(state.range(0)), mem);
 
 	while (state.KeepRunning()) {
@@ -87,7 +89,10 @@ void BM_Hashtable(benchmark::State& state) {
 										   cache.eventCounter().user_func_invocations, area);
 }
 
-BENCHMARK(BM_Hashtable)->Args({25, 100, 30})->Args({25, 100, 50})->Args({25, 100, 70})->Args({25, 100, 90});
-BENCHMARK(BM_Dummy)->Args({25, 100, 30});
+BENCHMARK_TEMPLATE(BM, FixedHashtableFairLRUTypeHolder<>)->
+		Args({27, 100, 30})->Args({25, 100, 50})->
+		Args({25, 100, 70})->Args({25, 100, 90})->
+		Args({27, 100, 95});
+BENCHMARK_TEMPLATE(BM, DummyContainerTypeHolder)->Args({27, 100, 30});
 
 BENCHMARK_MAIN();
