@@ -217,13 +217,13 @@ class SplayTreeBase {
 		return node;
 	}
 
-	Node*& findImpl(const key_t& key, Node*& node) {
+	Node*& findRefImpl(const key_t& key, Node*& node) {
 		if (!node)
 			return node;
 		if (comparator_(key, node->key_))
-			return findImpl(key, node->left_);
+			return findRefImpl(key, node->left_);
 		else if (comparator_(node->key_, key))
-			return findImpl(key, node->right_);
+			return findRefImpl(key, node->right_);
 
 		else /*key == node->key_*/
 			return node;
