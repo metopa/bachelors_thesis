@@ -43,8 +43,8 @@ class SplayTreeFairLRU : public SplayTreeBase<
 			SplayTreeFairLRU<KeyT, ValueT, SplayStrategyT, ComparatorT>>;
 	using node_t = typename base_t::Node;
 
-	SplayTreeFairLRU(size_t max_node_count, comparator_t comparator = {}) :
-			SplayTreeBase(max_node_count, comparator) {}
+	SplayTreeFairLRU(size_t max_node_count, ComparatorT comparator = {}) :
+			base_t(max_node_count, std::move(comparator)) {}
 
 	void nodeAccessedImpl(node_t* node) {
 		lru_manager_.markRecentlyUsed(node);
