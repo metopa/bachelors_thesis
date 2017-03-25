@@ -28,9 +28,9 @@ struct CacheContainerTraits<SplayTreeFairLRU
 };
 
 template <typename SplayStrategyT, typename ComparatorT = std::less<>>
-struct SplayTreeFaitLRUTypeHolder {
+struct SplayTreeFairLRUTypeHolder {
 	template <typename KeyT, typename ValueT>
-	using containert_t = SplayTreeFairLRU<KeyT, ValueT,
+	using container_t = SplayTreeFairLRU<KeyT, ValueT,
 			SplayStrategyT, ComparatorT>;
 };
 

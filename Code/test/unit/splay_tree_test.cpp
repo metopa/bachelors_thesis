@@ -9,8 +9,8 @@
  */
  
 TEST(SplayTree, basic) {
-	using container_t = typename SplayTreeFaitLRUTypeHolder
-			<CanonicalSplayStrategy>::template containert_t<int, int>;
+	using container_t = typename SplayTreeFairLRUTypeHolder
+			<CanonicalSplayStrategy>::template container_t<int, int>;
 	container_t tree(container_t::elementSize() * 8);
 	tree.insert(5, 5);
 	auto result = tree.find(5);
