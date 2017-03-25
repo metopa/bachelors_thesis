@@ -56,7 +56,7 @@ class SplayTreeFairLRU : public SplayTreeBase<
 	void nodeExtractedImpl(node_t* node) {
 		lru_manager_.extractNode(node);
 	}
-	node_t** getLruNodeRefImpl() {
+	node_t** getLruNodeRefImpl(const typename base_t::key_t& /*key*/) {
 		node_t* node = static_cast<node_t*>(lru_manager_.extractLruNode());
 		assert(node != nullptr);
 		assert(node->hasRefToSelf());

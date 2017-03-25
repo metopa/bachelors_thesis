@@ -40,6 +40,7 @@ class RefToSelfPolicy<NodeT, true> {
 //TODO Add check for splay strategy methods
 template <typename CrtpDerived>
 class SplayTreeBase {
+	friend CrtpDerived;
   public:
 	using traits = CacheContainerTraits<CrtpDerived>;
 	using key_t = typename traits::key_t;
@@ -55,6 +56,7 @@ class SplayTreeBase {
 			public node_base_t,
 			public RefToSelfPolicy<Node, traits::enableRefToSelf()> {
 		friend class SplayTreeBase;
+		friend CrtpDerived;
 
 		Node(key_t key, value_t value,
 			 strategy_t strategy = strategy_t()) :
@@ -181,7 +183,7 @@ class SplayTreeBase {
 		if (node_count_ < max_node_count_)
 			node = new Node(std::move(key), std::move(value));
 		else {
-			node = extractLruNode();
+			node = extractLruNode(key);
 			assert(node != nullptr);
 			node->key_ = std::move(key);
 			node->value_ = std::move(value);
@@ -432,10 +434,10 @@ class SplayTreeBase {
 		static_cast<CrtpDerived*>(this)->nodeExtractedImpl(node);
 	}
 
-	Node* extractLruNode() {
+	Node* extractLruNode(const key_t& key) {
 		assert(node_count_ == max_node_count_);
 		assert(node_count_ > 0);
-		Node** candidate = static_cast<CrtpDerived*>(this)->getLruNodeRefImpl();
+		Node** candidate = static_cast<CrtpDerived*>(this)->getLruNodeRefImpl(key);
 		assert(candidate != nullptr);
 		node_count_--;
 		return extractNodeImpl(*candidate);
@@ -448,7 +450,7 @@ class SplayTreeBase {
 	void nodeVisitedImpl(Node* node);
 	void nodeInsertedImpl(Node* node);
 	void nodeExtractedImpl(Node* node);
-	Node** getLruNodeRefImpl();
+	Node** getLruNodeRefImpl(const key_t& key);
 
 	Node* root_;
 	size_t node_count_;
