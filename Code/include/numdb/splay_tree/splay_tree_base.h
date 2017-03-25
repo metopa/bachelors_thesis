@@ -141,6 +141,10 @@ class SplayTreeBase {
 		}
 	}
 
+	size_t computeTreeHeight() {
+		return computeTreeHeightImpl(root_);
+	}
+
 	optional_value_t find(const key_t& key) {
 		EChildType tmp;
 		Node* node = findImplSplay(key, root_, tmp, true, true);
@@ -399,6 +403,12 @@ class SplayTreeBase {
 			verifyRefToSelfIntegrityImpl(node->left_);
 			verifyRefToSelfIntegrityImpl(node->right_);
 		}
+	}
+
+	size_t computeTreeHeightImpl(Node* node) {
+		return node ? std::max(
+				computeTreeHeightImpl(node->left_),
+				computeTreeHeightImpl(node->right_)) + 1 : 0;
 	}
 
   private:
