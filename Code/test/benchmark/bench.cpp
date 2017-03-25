@@ -56,8 +56,8 @@ void BM(benchmark::State& state) {
 }
 
 BENCHMARK_TEMPLATE(BM, FixedHashtableFairLRUTypeHolder<>)->Args({27, 100, 70});
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<CanonicalSplayStrategy>)->
-		Args({27, 100, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<CanonicalSplayStrategy>)->Args({27, 100, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->Args({27, 100, 70});
 BENCHMARK_TEMPLATE(BM, DummyContainerTypeHolder)->Args({27, 100, 70});
 
 BENCHMARK_MAIN();
