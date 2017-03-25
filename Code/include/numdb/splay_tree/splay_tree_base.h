@@ -170,7 +170,7 @@ class SplayTreeBase {
 	}
 
 	bool insertNode(Node* node) {
-		Node*& place_to_insert = findImpl(node->key_, root_);
+		Node*& place_to_insert = findRefImpl(node->key_, root_);
 		if (place_to_insert)
 			return false;
 		place_to_insert = node;
