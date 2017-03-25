@@ -5,6 +5,7 @@
  */
 
 #include <random>
+#include <numdb/splay_tree/splay_tree_strategy.h>
 
 
 #include "benchmark/benchmark.h"
@@ -54,10 +55,9 @@ void BM(benchmark::State& state) {
 										   cache.eventCounter().user_func_invocations, area);
 }
 
-BENCHMARK_TEMPLATE(BM, FixedHashtableFairLRUTypeHolder<>)->
-		Args({27, 100, 30})->Args({25, 100, 50})->
-		Args({25, 100, 70})->Args({25, 100, 90})->
-		Args({27, 100, 95});
-BENCHMARK_TEMPLATE(BM, DummyContainerTypeHolder)->Args({27, 100, 30});
+BENCHMARK_TEMPLATE(BM, FixedHashtableFairLRUTypeHolder<>)->Args({27, 100, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<CanonicalSplayStrategy>)->
+		Args({27, 100, 70});
+BENCHMARK_TEMPLATE(BM, DummyContainerTypeHolder)->Args({27, 100, 70});
 
 BENCHMARK_MAIN();
