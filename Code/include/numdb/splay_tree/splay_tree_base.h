@@ -135,6 +135,12 @@ class SplayTreeBase {
 		return node_count_;
 	}
 
+	void verifyRefToSelfIntegrity() {
+		if (Node::hasRefToSelf()) {
+			verifyRefToSelfIntegrityImpl(root_);
+		}
+	}
+
 	optional_value_t find(const key_t& key) {
 		EChildType tmp;
 		Node* node = findImplSplay(key, root_, tmp, true, true);
@@ -372,6 +378,14 @@ class SplayTreeBase {
 		while ((*pred)->right_)
 			pred = &(node->right_);
 		return *pred;
+	}
+
+	void verifyRefToSelfIntegrityImpl(Node*& node) {
+		if (node) {
+			assert(node->getRefToSelf() == &node);
+			verifyRefToSelfIntegrityImpl(node->left_);
+			verifyRefToSelfIntegrityImpl(node->right_);
+		}
 	}
 
   private:
