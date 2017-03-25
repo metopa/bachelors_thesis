@@ -389,7 +389,7 @@ class SplayTreeBase {
 	Node*& getPredecessor(Node*& node) {
 		Node** pred = &(node->left_);
 		while ((*pred)->right_)
-			pred = &(node->right_);
+			pred = &((*pred)->right_);
 		return *pred;
 	}
 
