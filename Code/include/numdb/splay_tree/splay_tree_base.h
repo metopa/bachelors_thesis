@@ -165,10 +165,14 @@ class SplayTreeBase {
 		return true;
 	}
 
+	/**
+	 * @brief
+	 * @param key
+	 * @param value
+	 * @warning insert assumes that there's no such key exists and does no additional checks
+	 * @return
+	 */
 	bool insert(key_t key, value_t value) {
-		Node*& place_to_insert = findRefImpl(key, root_);
-		if (place_to_insert)
-			return false;
 		Node* node;
 		if (node_count_ < max_node_count_)
 			node = new Node(std::move(key), std::move(value));
@@ -179,6 +183,8 @@ class SplayTreeBase {
 			node->value_ = std::move(value);
 		}
 
+		Node*& place_to_insert = findRefImpl(key, root_);
+		assert(place_to_insert == nullptr);
 		place_to_insert = node;
 		node->setRefToSelf(&place_to_insert);
 		nodeInserted(node);
