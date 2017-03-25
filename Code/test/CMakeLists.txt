@@ -14,7 +14,8 @@ include_directories(../3rdparty/murmurhash2functor/include)
 
 add_executable(unit_tests
         unit/fair_lru_test.cpp
-        unit/fixed_hashtable_fair_lru_test.cpp)
+        unit/fixed_hashtable_fair_lru_test.cpp
+        unit/splay_tree_test.cpp)
 target_link_libraries(unit_tests numdb ${GTEST_BOTH_LIBRARIES} pthread)
 
 add_executable(bench benchmark/bench.cpp)
