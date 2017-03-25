@@ -256,7 +256,8 @@ class SplayTreeBase {
 			return node;
 		}
 
-		child_type = splay(node, is_root, child_type, grandchild);
+		if (result)
+			child_type = splay(node, is_root, child_type, grandchild);
 
 		return result;
 	}
@@ -268,6 +269,8 @@ class SplayTreeBase {
 		assert(child != nullptr);
 		parent_ref = child;
 		parent->right_ = child->left_;
+		if (parent->right_)
+			parent->right_->setRefToSelf(&(parent->right_));
 		child->left_ = parent;
 		child->setRefToSelf(parent->getRefToSelf());
 		parent->setRefToSelf(&(child->left_));
@@ -280,6 +283,8 @@ class SplayTreeBase {
 		assert(child != nullptr);
 		parent_ref = child;
 		parent->left_ = child->right_;
+		if (parent->left_)
+			parent->left_->setRefToSelf(&(parent->left_));
 		child->right_ = parent;
 		child->setRefToSelf(parent->getRefToSelf());
 		parent->setRefToSelf(&(child->right_));
