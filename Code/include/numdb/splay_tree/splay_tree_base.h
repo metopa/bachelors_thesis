@@ -14,31 +14,24 @@
 
 #include "numdb/utils.h"
 
+template <typename NodeT, bool IsReal>
+class RefToSelfPolicy;
+
 template <typename NodeT>
-class EmptyRefToSelfPolicy {
+class RefToSelfPolicy<NodeT, false> {
   public:
-	static constexpr bool hasRefToSelf() {
-		return false;
-	}
-	void setRefToSelf(NodeT* ptr) {}
-	NodeT** getRefToSelf() {
-		return nullptr;
-	}
+	static constexpr bool hasRefToSelf() { return false; }
+	void setRefToSelf(NodeT** ptr) {}
+	NodeT** getRefToSelf() { return nullptr; }
 };
 
 template <typename NodeT>
-class realRefToSelfPolicy {
+class RefToSelfPolicy<NodeT, true> {
 	NodeT** ptr_ = nullptr;
   public:
-	static constexpr bool hasRefToSelf() {
-		return true;
-	}
-	void setRefToSelf(NodeT** ptr) {
-		ptr_ = ptr;
-	}
-	NodeT** getRefToSelf() {
-		return ptr_;
-	}
+	static constexpr bool hasRefToSelf() { return true; }
+	void setRefToSelf(NodeT** ptr) { ptr_ = ptr; }
+	NodeT** getRefToSelf() { return ptr_; }
 };
 
 //TODO Allocate memory in a single block
