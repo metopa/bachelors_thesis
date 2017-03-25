@@ -19,7 +19,7 @@ double computeScore(size_t total_retrievals,
 	return (total_retrievals - user_func_calls) / (double) total_retrievals * 100
 		   / area_under_curve;
 }
-
+//FIXME compute sigma parameter basing on the function arity
 /**
  * @arg state.range(0) argument for a Fibonacci function
  * @arg state.range(1) available memory (in KiB)
