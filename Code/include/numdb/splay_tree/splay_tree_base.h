@@ -46,8 +46,6 @@ class SplayTreeBase {
 	using value_t = typename traits::value_t;
 	using comparator_t = typename traits::comparator_t;
 	using strategy_t = typename traits::strategy_t;
-	template <typename NodeT>
-	using node_parent_policy_t = typename traits::template node_ref_to_self_policy_t<NodeT>;
 	using node_base_t = typename traits::node_base_t;
 	using optional_value_t = std::experimental::optional<value_t>;
 
@@ -55,7 +53,7 @@ class SplayTreeBase {
 	class Node :
 			public strategy_t,
 			public node_base_t,
-			public node_parent_policy_t<Node> {
+			public RefToSelfPolicy<Node, traits::enableRefToSelf()> {
 		friend class SplayTreeBase;
 
 		Node(key_t key, value_t value,
@@ -96,9 +94,9 @@ class SplayTreeBase {
 		}
 
 	  private:
-		// This ordering is intended to keep
+		// This member ordering is designed to keep
 		// the most frequently accessed members
-		// at the beginning of the object
+		// in the beginning of the object
 		key_t key_;
 		Node* left_;
 		Node* right_;
@@ -139,7 +137,7 @@ class SplayTreeBase {
 
 	optional_value_t find(const key_t& key) {
 		EChildType tmp;
-		Node* node = findImplSplay(key, root_, tmp, true);
+		Node* node = findImplSplay(key, root_, tmp, true, true);
 		if (!node)
 			return {};
 		else
@@ -147,7 +145,10 @@ class SplayTreeBase {
 	}
 
 	Node* extractNode(const key_t& key) {
-		return extractNodeImpl(findImpl(key, root_));
+		Node* extracted = extractNodeImpl(findRefImpl(key, root_));
+		if (extracted)
+			nodeExtracted(extracted);
+		return extracted;
 	}
 
 	bool remove(const key_t& key) {
@@ -158,16 +159,22 @@ class SplayTreeBase {
 		return true;
 	}
 
-	bool insert(value_t key, value_t value) {
-		return insertNode(new Node(std::move(key), std::move(value)));
-	}
-
-	bool insertNode(Node* node) {
-		Node*& place_to_insert = findRefImpl(node->key_, root_);
+	bool insert(key_t key, value_t value) {
+		Node*& place_to_insert = findRefImpl(key, root_);
 		if (place_to_insert)
 			return false;
+		Node* node;
+		if (node_count_ < max_node_count_)
+			node = new Node(std::move(key), std::move(value));
+		else {
+			node = extractLruNode();
+			assert(node != nullptr);
+			node->key_ = std::move(key);
+			node->value_ = std::move(value);
+		}
+
 		place_to_insert = node;
-		node->setRefToSelf(place_to_insert);
+		node->setRefToSelf(&place_to_insert);
 		nodeInserted(node);
 		return true;
 	}
@@ -186,26 +193,27 @@ class SplayTreeBase {
 		if (!node)
 			return nullptr;
 
-		node_count_--;
-
 		if (!node->left_) {
 			node_ref = node->right_; //Can be nullptr
+			if (node_ref)
+				node_ref->setRefToSelf(&node_ref);
 			node->right_ = nullptr;
 			return node;
 		}
 		if (!node->right_) {
-		node_ref = node->left_;
+			node_ref = node->left_;
+			node_ref->setRefToSelf(&node_ref);
 			node->left_ = nullptr;
 			return node;
 		}
 
-		Node* predecessor = extractNode(getPredecessor(node));
+		Node* predecessor = extractNodeImpl(getPredecessor(node));
 		assert(predecessor != nullptr);
-		node_count_++;
 
 		predecessor->left_ = node->left_;
 		predecessor->right_ = node->right_;
 		node_ref = predecessor;
+		node_ref->setRefToSelf(&node_ref);
 		node->right_ = node->left_ = nullptr;
 		return node;
 	}
@@ -223,23 +231,28 @@ class SplayTreeBase {
 	}
 
 	Node* findImplSplay(const key_t& key, Node*& node,
-						EChildType& child_type, bool is_root) {
+						EChildType& child_type, bool is_root, bool mark_visited) {
 		if (!node)
 			return nullptr;
 
 		Node* result;
 		EChildType grandchild = EChildType::UNDEFINED;
 
+		assert(!node->hasRefToSelf() || node->getRefToSelf() == &node);
+
 		if (comparator_(key, node->key_)) {
-			node->visited();
+			if (mark_visited)
+				node->visited();
 			child_type = EChildType::LEFT;
-			result = findImplSplay(key, node->left_, grandchild, false);
+			result = findImplSplay(key, node->left_, grandchild, false, mark_visited);
 		} else if (comparator_(node->key_, key)) {
-			node->visited();
+			if (mark_visited)
+				node->visited();
 			child_type = EChildType::RIGHT;
-			result = findImplSplay(key, node->right_, grandchild, false);
+			result = findImplSplay(key, node->right_, grandchild, false, mark_visited);
 		} else /*key == node->key_*/ {
-			node->accessed();
+			if (mark_visited)
+				node->accessed();
 			return node;
 		}
 
@@ -256,6 +269,8 @@ class SplayTreeBase {
 		parent_ref = child;
 		parent->right_ = child->left_;
 		child->left_ = parent;
+		child->setRefToSelf(parent->getRefToSelf());
+		parent->setRefToSelf(&(child->left_));
 	}
 
 	void rotateRight(Node*& parent_ref) {
@@ -266,6 +281,8 @@ class SplayTreeBase {
 		parent_ref = child;
 		parent->left_ = child->right_;
 		child->right_ = parent;
+		child->setRefToSelf(parent->getRefToSelf());
+		parent->setRefToSelf(&(child->right_));
 	}
 
 	EChildType splay(Node*& node, bool is_root,
@@ -375,11 +392,11 @@ class SplayTreeBase {
 
 	Node* extractLruNode() {
 		assert(node_count_ == max_node_count_);
-		Node* candidate = static_cast<CrtpDerived*>(this)->getLruNodeImpl();
+		assert(node_count_ > 0);
+		Node** candidate = static_cast<CrtpDerived*>(this)->getLruNodeRefImpl();
 		assert(candidate != nullptr);
-
-		assert(false);
-		return nullptr;
+		node_count_--;
+		return extractNodeImpl(*candidate);
 	}
 
   protected:
@@ -389,7 +406,7 @@ class SplayTreeBase {
 	void nodeVisitedImpl(Node* node);
 	void nodeInsertedImpl(Node* node);
 	void nodeExtractedImpl(Node* node);
-	Node* getLruNodeImpl();
+	Node** getLruNodeRefImpl();
 
 	Node* root_;
 	size_t node_count_;
