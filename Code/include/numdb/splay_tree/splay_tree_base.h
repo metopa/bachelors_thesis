@@ -223,9 +223,16 @@ class SplayTreeBase {
 		assert(predecessor != nullptr);
 
 		predecessor->left_ = node->left_;
+		if (predecessor->left_)
+			predecessor->left_->setRefToSelf(&(predecessor->left_));
+
 		predecessor->right_ = node->right_;
+		if (predecessor->right_)
+			predecessor->right_->setRefToSelf(&(predecessor->right_));
+
 		node_ref = predecessor;
 		node_ref->setRefToSelf(&node_ref);
+
 		node->right_ = node->left_ = nullptr;
 		return node;
 	}
