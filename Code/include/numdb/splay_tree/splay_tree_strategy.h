@@ -20,14 +20,14 @@ struct CanonicalSplayStrategy {
 };
 
 struct AccessCountSplayStrategy {
-	int accesses = 0;
+	uint32_t accesses = 0;
 
 	bool shouldSplay(AccessCountSplayStrategy* child) {
 		return accesses < child->accesses;
 	}
 	void visited() {}
 	void accessed() {
-		accesses++;
+		accesses = std::max(accesses + 1, std::numeric_limits<uint32_t>::max());
 	}
 
 	void dumpStrategy(std::ostream& out) const {
@@ -35,19 +35,19 @@ struct AccessCountSplayStrategy {
 	}
 };
 
-template <int SCORE_BOOST, int SCORE_DEGRADATION,
-		int MAX_SCORE, int INITIAL_SCORE = MAX_SCORE / 2>
+template <unsigned char SCORE_BOOST, unsigned char SCORE_DEGRADATION,
+		unsigned char MAX_SCORE, unsigned char INITIAL_SCORE = MAX_SCORE / 2>
 struct ParametrizedAccessCountSplayStrategy {
-	int score = INITIAL_SCORE;
+	unsigned char score = INITIAL_SCORE;
 
 	bool shouldSplay(ParametrizedAccessCountSplayStrategy* child) {
 		return score < child->score;
 	}
 	void visited() {
-		score = std::max(score - SCORE_DEGRADATION, 0);
+		score = std::max<unsigned char>(score - SCORE_DEGRADATION, 0);
 	}
 	void accessed() {
-		score = std::min(score + SCORE_BOOST, MAX_SCORE);
+		score = std::min<unsigned char>(score + SCORE_BOOST, MAX_SCORE);
 	}
 
 	void dumpStrategy(std::ostream& out) const {
