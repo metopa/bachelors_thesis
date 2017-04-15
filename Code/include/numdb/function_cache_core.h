@@ -9,8 +9,12 @@
 #define NUMDB_FUNCTION_CACHE_CORE_H
 
 #include <tuple>
+#include <chrono>
 #include <type_traits>
 #include <experimental/tuple> //std::experimental::apply
+
+#include "initial_priority_generator.h"
+#include "utils.h"
 
 
 template <
@@ -37,12 +41,22 @@ class FunctionCacheCore {
 	FunctionCacheCore(const FunctionCacheCore&) = delete;
 	FunctionCacheCore& operator =(const FunctionCacheCore&) = delete;
 
-	auto invokeUserFunc(const UserFuncArgsTupleT& args) {
+	auto invokeUserFunc(const UserFuncArgsTupleT& args,
+						size_t& priority) {
+		using namespace std::chrono;
 		event_counter_.invokeUserFunc();
+		auto start = high_resolution_clock::now();
+		DEFERRED(
+				priority = priority_generator_.calculatePriority(
+						(uint64_t) duration_cast<microseconds>(
+								high_resolution_clock::now() - start
+						).count())
+		);
 		return std::experimental::apply(user_func_, args);
 	}
 
   private:
+	InitialPriorityGenerator<256> priority_generator_;
 	UserFuncT user_func_;
 	EventCounterT event_counter_;
 };

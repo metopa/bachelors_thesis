@@ -178,7 +178,8 @@ class SplayTreeBase {
 	 * @warning insert assumes that there's no such key exists and does no additional checks
 	 * @return
 	 */
-	bool insert(key_t key, value_t value) {
+	bool insert(key_t key, value_t value, size_t priority) {
+		//TODO use priority
 		Node* node;
 		if (node_count_ < max_node_count_)
 			node = new Node(std::move(key), std::move(value));

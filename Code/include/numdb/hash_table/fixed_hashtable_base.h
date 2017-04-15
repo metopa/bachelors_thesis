@@ -127,7 +127,8 @@ class FixedHashtableBase {
 		return bucket;
 	}
 
-	bool insert(key_t key, value_t value) {
+	bool insert(key_t key, value_t value, size_t priority) {
+		//TODO Add priority
 		Node** root_node = &buckets_[getBucket(key)];
 		Node** node = root_node;
 		while (*node) {

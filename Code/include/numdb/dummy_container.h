@@ -44,7 +44,8 @@ class DummyContainer {
 		return {};
 	}
 
-	void insert(const KeyT& key, const ValueT& value) {}
+	void insert(const KeyT& key, const ValueT& value,
+				size_t priority) {}
 };
 
 

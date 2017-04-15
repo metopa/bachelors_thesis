@@ -50,8 +50,9 @@ class FunctionCache {
 	}
 
 	double elementSizeOverhead() const {
-		return 1 - static_cast<double>(sizeof(typename core_t::args_tuple_t) +
-									   sizeof(typename core_t::return_t))
+		return 1 - static_cast<double>(
+						   sizeof(typename core_t::args_tuple_t) +
+						   sizeof(typename core_t::return_t))
 				   / elementSize();
 	}
 
@@ -75,9 +76,9 @@ class FunctionCache {
 		if (res) {
 			return *res;
 		}
-
-		auto computed_res = core_.invokeUserFunc(key);
-		container_.insert(std::move(key), computed_res);
+		size_t priority = 0;
+		auto computed_res = core_.invokeUserFunc(key, priority);
+		container_.insert(std::move(key), computed_res, priority);
 		return std::move(computed_res);
 	}
 
