@@ -8,36 +8,59 @@
 #define NUMDB_WEIGHTED_SEARCH_TREE_H
 
 #include <vector>
+#include <iomanip>
 #include <experimental/optional>
 #include <limits>
 #include <cassert>
 #include <ostream>
 
-struct DummyPriority {
+class WstPriority {
+  public:
+	WstPriority(unsigned int priority) : priority_(priority) {
+		setAvlBalance(0);
+	}
 
-	void visited() {}
-	void accessed() {}
+	void visit() {
+		if (priority_ >= 256)
+			priority_ -= 256;
+	}
+
+	void access() {
+		uint32_t priority = priority_;
+		constexpr uint32_t max_priority = (1 << 30) - 1;
+		priority += (priority & 0xFF) << 8;
+		priority_ = std::min(priority, max_priority);
+	}
+
+	size_t value() {
+		return priority_;
+	}
 
 	int avlBalance() {
-		return balance;
+		return balance_;
 	}
 
 	void setAvlBalance(int b) {
-		balance = b;
+		assert(b >= -1 && b <= 1);
+		balance_ = b;
 	}
 
-	bool operator <(const DummyPriority& other) const {
-		return true;
+	bool operator <(const WstPriority& other) const {
+		return priority_ < other.priority_;
 	}
 
-	int balance = 0;
+  private:
+	int32_t balance_ : 2;
+	uint32_t priority_ : 30;
 };
+
+static_assert(sizeof(WstPriority) == 4, "Invalid wst priority size");
 
 template <
 		typename KeyT, typename ValueT,
 		/*typename PriorityT,*/ typename ComparatorT>
 class WeightedSearchTree {
-	using PriorityT = DummyPriority;
+	using PriorityT = WstPriority;
 	using idx_t = std::size_t;
 	using key_t = KeyT;
 	using value_t = ValueT;
@@ -45,6 +68,7 @@ class WeightedSearchTree {
 	using comparator_t = ComparatorT;
 	using optional_value_t = std::experimental::optional<ValueT>;
 	static constexpr idx_t null = static_cast<idx_t>(-1);
+	static constexpr bool DEGRADE_NODE_ON_SEARCH = true;
 
 	struct Node {
 		key_t key;
@@ -62,7 +86,6 @@ class WeightedSearchTree {
 		}
 
 		void setAvlBalance(int b) {
-			assert(b >= -1 && b <= 1);
 			priority.setAvlBalance(b);
 		}
 	};
@@ -98,54 +121,82 @@ class WeightedSearchTree {
 	}
 
 	optional_value_t find(const key_t& key) {
-		return treeSearch(key);
+		idx_t idx = treeSearch(key, true);
+		if (idx != null)
+			return {_(idx).value};
+		else
+			return {};
 	}
 
 	bool remove(const key_t& key) {
-		idx_t node = treeSearch(key);
+		idx_t node = treeSearch(key, false);
 		if (node == null)
 			return false;
-		treeRemove(node);
 		assert(node_count_ > 0);
-		node_count_--;
+		node = heapRemove(node);
+		treeRemove(node);
+		assert(checkInvariants());
 		return true;
 	}
 
-	bool insert(key_t key, value_t value) {
+	bool insert(key_t key, value_t value, size_t priority) {
 		idx_t node;
 		if (node_count_ == max_node_count_) {
-			node = evictNode();
+			node = heapRemove();
 			treeRemove(node);
-			_(node) = Node(std::move(key), std::move(value), {});
-		}
-		else {
+			assert(checkInvariants());
+			_(node) = Node(std::move(key), std::move(value), priority);
+		} else {
 			node = data_.size();
-			data_.push_back(Node(std::move(key), std::move(value), {}));
+			data_.push_back(Node(std::move(key), std::move(value), priority));
 		}
-		treeInsert(node);
+		_(node).priority.access();
 		node_count_++;
+		treeInsert(node);
+		bottomUpHeapify(node);
+		assert(checkInvariants());
 		return true;
 	}
 
 	void dump(std::ostream& out) {
-		dump(root_idx_, out, 0);
+		dumpTree(root_idx_, out, 0);
+		dumpHeap(0, out, 0);
 	}
 
-	void checkAvlInvariant() {
+	bool checkInvariants() {
+		assert((node_count_ == 0) == (root_idx_ == null));
 		checkAvlInvariant(root_idx_);
+		if (node_count_ > 0)
+			checkHeapInvariant(0);
+		return true;
 	}
 
   private:
-	void dump(idx_t node, std::ostream& out, int level) {
+	void dumpTree(idx_t node, std::ostream& out, int level) {
 		for (int i = 0; i < level; i++)
 			out << "- ";
 		if (node == null)
-			out << "@" << std::endl;
+			out << "#" << std::endl;
 		else {
 			out << _(node).key << "->" << _(node).avlBalance() << std::endl;
 			if (_(node).left != null || _(node).right != null) {
-				dump(_(node).left, out, level + 1);
-				dump(_(node).right, out, level + 1);
+				dumpTree(_(node).left, out, level + 1);
+				dumpTree(_(node).right, out, level + 1);
+			}
+		}
+	}
+
+	void dumpHeap(idx_t node, std::ostream& out, int level) {
+		for (int i = 0; i < level; i++)
+			out << ". ";
+		if (node == null)
+			out << "#" << std::endl;
+		else {
+			out << _(node).key << "->" << std::hex <<
+				_(node).priority.value() << std::dec << std::endl;
+			if (heapLeft(node) != null || heapRight(node) != null) {
+				dumpHeap(heapLeft(node), out, level + 1);
+				dumpHeap(heapRight(node), out, level + 1);
 			}
 		}
 	}
@@ -168,15 +219,41 @@ class WeightedSearchTree {
 		return std::max(left, right) + 1;
 	}
 
-	idx_t treeSearch(const key_t& key) {
+	void checkHeapInvariant(idx_t node) {
+		idx_t child = heapLeft(node);
+		if (child != null) {
+			assert(!(_(child).priority < _(node).priority));
+			checkHeapInvariant(child);
+		}
+
+		child = heapRight(node);
+		if (child != null) {
+			assert(!(_(child).priority < _(node).priority));
+			checkHeapInvariant(child);
+		}
+	}
+
+	idx_t treeSearch(const key_t& key, bool degrade_priority) {
 		idx_t n = root_idx_;
 		while (n != null) {
-			if (comparator_(key, _(n).key))
+			if (comparator_(key, _(n).key)) {
+				if (DEGRADE_NODE_ON_SEARCH && degrade_priority) {
+					_(n).priority.visit();
+					n = bottomUpHeapify(n);
+				}
 				n = _(n).left;
-			else if (comparator_(_(n).key, key))
+			} else if (comparator_(_(n).key, key)) {
+				if (DEGRADE_NODE_ON_SEARCH && degrade_priority) {
+					_(n).priority.visit();
+					n = bottomUpHeapify(n);
+				}
 				n = _(n).right;
-			else
+			} else {
+				_(n).priority.access();
+				n = topDownHeapify(n);
+
 				return n;
+			}
 		}
 		return null;
 	}
@@ -365,14 +442,12 @@ class WeightedSearchTree {
 			}
 		}
 
-
 		if (_(parent).right != null) {
 			assert(_(_(parent).right).parent == right);
 			_(_(parent).right).parent = parent;
 		}
 		return right;
 	}
-
 	idx_t rotateRightImpl(idx_t parent) {
 		idx_t left = _(parent).left;
 		assert(left != null);
@@ -398,21 +473,18 @@ class WeightedSearchTree {
 		}
 		return left;
 	}
-
 	idx_t rotateLeft(idx_t parent) {
 		parent = rotateLeftImpl(parent);
 		_(parent).setAvlBalance(_(parent).avlBalance() - 1);
 		_(_(parent).left).setAvlBalance(-_(parent).avlBalance());
 		return parent;
 	}
-
 	idx_t rotateRight(idx_t parent) {
 		parent = rotateRightImpl(parent);
 		_(parent).setAvlBalance(_(parent).avlBalance() + 1);
 		_(_(parent).right).setAvlBalance(-_(parent).avlBalance());
 		return parent;
 	}
-
 	idx_t rotateLeftRight(idx_t parent) {
 		rotateLeftImpl(_(parent).left);
 		parent = rotateRightImpl(parent);
@@ -433,7 +505,6 @@ class WeightedSearchTree {
 		_(parent).setAvlBalance(0);
 		return parent;
 	}
-
 	idx_t rotateRightLeft(idx_t parent) {
 		rotateRightImpl(_(parent).right);
 		parent = rotateLeftImpl(parent);
@@ -455,71 +526,86 @@ class WeightedSearchTree {
 		return parent;
 	}
 
-	void replaceTreeReferences(idx_t old_node, idx_t new_node) {
-		idx_t i = heapParent(old_node);
-		if (i != null) {
-			if (_(i).left == old_node)
-				_(i).left = new_node;
+	void replaceTreeReferences(idx_t old_node, idx_t new_node,
+							   idx_t parent, idx_t left, idx_t right,
+							   bool is_left_son) {
+		if (parent != null) {
+			if (is_left_son)
+				_(parent).left = new_node;
 			else {
-				assert(_(i).right == old_node);
-				_(i).right = new_node;
+				assert(_(parent).right == old_node);
+				_(parent).right = new_node;
 			}
 		}
-		i = heapLeft(old_node);
-		if (i != null) {
-			assert(_(i).parent == old_node);
-			_(i).parent = new_node;
-			i = heapRight(old_node);
-			if (i != null) {
-				assert(_(i).parent == old_node);
-				_(i).parent = new_node;
-			}
+		if (left != null) {
+			assert(_(left).parent == old_node);
+			_(left).parent = new_node;
+		}
+		if (right != null) {
+			assert(_(right).parent == old_node);
+			_(right).parent = new_node;
 		}
 	}
 
 	void swapNodes(idx_t a, idx_t b) {
-		replaceTreeReferences(a, b);
-		replaceTreeReferences(b, a);
+		idx_t b_parent = _(b).parent;
+		idx_t b_left = _(b).left;
+		idx_t b_right = _(b).right;
+		bool b_is_left_son = isLeftSon(b);
+		replaceTreeReferences(a, b, _(a).parent, _(a).left, _(a).right, isLeftSon(a));
+		replaceTreeReferences(b, a, b_parent, b_left, b_right, b_is_left_son);
+		if (root_idx_ == a)
+			root_idx_ = b;
+		else if (root_idx_ == b)
+			root_idx_ = a;
 		std::swap(_(a), _(b));
 	}
 
-	idx_t evictNode() {
-		swapNodes(0, node_count_ - 1);
-		node_count_--;
-		if (node_count_ > 0)
-			topDownHeapify(0);
+	idx_t heapRemove(idx_t node = 0) {
+		if (node != node_count_ - 1) {
+			swapNodes(node, node_count_ - 1);
+			node_count_--;
+			if (node_count_ > 0) {
+				idx_t new_idx = topDownHeapify(node);
+				if (new_idx == node)
+					bottomUpHeapify(new_idx);
+			}
+		} else
+			node_count_--;
 		return node_count_;
 	}
 
-	void topDownHeapify(idx_t idx) {
+	idx_t topDownHeapify(idx_t idx) {
 		idx_t max = heapLeft(idx);
 		if (max == null)
-			return;
+			return idx;
 		idx_t right = heapRight(idx);
-		if (right != null && comparator_(_(right).key, _(max).key))
+		if (right != null && _(right).priority < _(max).priority)
 			max = right;
-		if (comparator_(_(max).key, _(idx).key)) {
+		if (_(max).priority < _(idx).priority) {
 			swapNodes(idx, max);
-			topDownHeapify(max);
-		}
+			return topDownHeapify(max);
+		} else
+			return idx;
 	}
 
-	void bottomUpHeapify(idx_t idx) {
+	idx_t bottomUpHeapify(idx_t idx) {
 		idx_t parent;
-		while ((parent = heapParent(idx)) != null
-			   && comparator_(_(idx).key, _(parent).key)) {
+		while ((parent = heapParent(idx)) != null &&
+			   _(idx).priority < _(parent).priority) {
 			swapNodes(idx, parent);
 			idx = parent;
 		}
+		return idx;
 	}
 	idx_t heapParent(idx_t i) {
-		return i == 0 ? null : i / 2;
+		return i == 0 ? null : (i - 1) / 2;
 	}
 	idx_t heapLeft(idx_t i) {
-		return i * 2 < node_count_ ? i * 2 : null;
+		return i * 2 + 1 < node_count_ ? i * 2 + 1 : null;
 	}
 	idx_t heapRight(idx_t i) {
-		return i * 2 + 1 < node_count_ ? i * 2 + 1 : null;
+		return i * 2 + 2 < node_count_ ? i * 2 + 2 : null;
 	}
 
 	/// \brief Access i-th node in the data_ array
