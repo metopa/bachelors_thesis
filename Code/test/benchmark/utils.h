@@ -25,10 +25,13 @@ double computeSigma(double area, size_t element_count) {
 
 template <typename Result, typename... Args>
 struct Fibonacci {
-	Fibonacci(int fib_arg) : fib_arg_(fib_arg) {}
+	Fibonacci(int fib_arg_min, int fib_arg_max) :
+			fib_arg_min_(fib_arg_min), fib_arg_max_(fib_arg_max) {}
 
-	Result operator ()(Args...) {
-		volatile int n = fib_arg_;
+	Result operator ()(Args... args) {
+		volatile int n = fib_arg_min_;
+		if (fib_arg_min_ < fib_arg_max_)
+			n += static_cast<int>(firstArg(args...)) % (fib_arg_max_ - fib_arg_min_ + 1);
 		n = fibonacciImpl(n);
 		return n;
 	}
@@ -37,10 +40,16 @@ struct Fibonacci {
 		return sizeof(std::tuple<Result, Args...>);
 	}
   private:
-	int fib_arg_;
+	const int fib_arg_min_;
+	const int fib_arg_max_;
 	int fibonacciImpl(int n) {
 		return n <= 2 ? 1 : fibonacciImpl(n - 1) + fibonacciImpl(n - 2);
 	}
+
+	template <typename T, typename... Others>
+	auto firstArg(T a, Others...) -> T {
+		return a;
+	};
 };
 
 #endif //NUMDB_UTIL_H

@@ -6,6 +6,7 @@
 
 #include <random>
 #include <numdb/splay_tree/splay_tree_strategy.h>
+#include <numdb/wst/weighted_search_tree.h>
 
 
 #include "benchmark/benchmark.h"
@@ -22,18 +23,19 @@ double computeScore(size_t total_retrievals,
 
 //FIXME compute sigma parameter basing on the function arity
 /**
- * @arg state.range(0) argument for a Fibonacci function
- * @arg state.range(1) available memory (in KiB)
- * @arg state.range(2) desired area under curve (in percents)
+ * @arg state.range(0) min argument for a Fibonacci function
+ * @arg state.range(1) max argument for a Fibonacci function
+ * @arg state.range(2) available memory (in KiB)
+ * @arg state.range(3) desired area under curve (in percents)
  */
 template <class ContainerTypeHolder>
 void BM(benchmark::State& state) {
 	using UserFunc = Fibonacci<int, double>;
 
-	size_t mem = static_cast<size_t>(state.range(1)) * 1024;
+	size_t mem = static_cast<size_t>(state.range(2)) * 1024;
 	size_t max_element_capacity = mem / UserFunc::aggregatedArgSize();
 
-	double area = state.range(2);
+	double area = state.range(3);
 	area /= 100;
 
 	double sigma = computeSigma(area, max_element_capacity);
@@ -42,7 +44,7 @@ void BM(benchmark::State& state) {
 	std::normal_distribution<double> dist(0, sigma);
 
 	FunctionCache<UserFunc, ContainerTypeHolder, BasicEventCounter>
-			cache(UserFunc(state.range(0)), mem);
+			cache(UserFunc(state.range(0), state.range(1)), mem);
 
 	while (state.KeepRunning()) {
 		double a = std::round(dist(e));
@@ -54,13 +56,24 @@ void BM(benchmark::State& state) {
 	state.counters["score"] = computeScore(cache.eventCounter().total_retrievals,
 										   cache.eventCounter().user_func_invocations, area);
 }
+constexpr int max_arg = 27;
+constexpr int min_arg = 30;
+BENCHMARK_TEMPLATE(BM, FixedHashtableFairLRUTypeHolder<>)->
+		Args({min_arg, max_arg, 10, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<CanonicalSplayStrategy>)->
+		Args({min_arg, max_arg, 10, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<AccessCountSplayStrategy>)->
+		Args({min_arg, max_arg, 10, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<CanonicalSplayStrategy>)->
+		Args({min_arg, max_arg, 10, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<
+		ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->Args({min_arg, max_arg, 100, 70});
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<AccessCountSplayStrategy>)->
+		Args({min_arg, max_arg, 10, 70});
+BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<>)->
+		Args({min_arg, max_arg, 10, 70});
 
-BENCHMARK_TEMPLATE(BM, FixedHashtableFairLRUTypeHolder<>)->Args({27, 10, 70});
-BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<CanonicalSplayStrategy>)->Args({27, 10, 70});
-BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<AccessCountSplayStrategy>)->Args({27, 10, 70});
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<CanonicalSplayStrategy>)->Args({27, 10, 70});
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->Args({27, 100, 70});
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<AccessCountSplayStrategy>)->Args({27, 10, 70});
-BENCHMARK_TEMPLATE(BM, DummyContainerTypeHolder)->Args({27, 10, 70});
+BENCHMARK_TEMPLATE(BM, DummyContainerTypeHolder)->
+		Args({min_arg, max_arg, 10, 70});
 
 BENCHMARK_MAIN();
