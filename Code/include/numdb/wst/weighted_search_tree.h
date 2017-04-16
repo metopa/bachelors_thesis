@@ -16,13 +16,13 @@
 
 class WstPriority {
   public:
-	WstPriority(unsigned int priority) : priority_(priority) {
+	WstPriority(unsigned int priority) : priority_(std::max<unsigned>(priority, 1)) {
 		setAvlBalance(0);
 	}
 
-	void visit() {
-		if (priority_ >= 256)
-			priority_ -= 256;
+	void visit(int degradation_rate) {
+		if (priority_ > 256 * degradation_rate)
+			priority_ -= 256 * degradation_rate;
 	}
 
 	void access() {
@@ -56,7 +56,7 @@ class WstPriority {
 
 static_assert(sizeof(WstPriority) == 4, "Invalid wst priority size");
 
-template <typename KeyT, typename ValueT, typename ComparatorT>
+template <typename KeyT, typename ValueT, typename ComparatorT, int DegradationRate>
 class WeightedSearchTree {
 	using idx_t = std::size_t;
 	using key_t = KeyT;
@@ -65,7 +65,7 @@ class WeightedSearchTree {
 	using comparator_t = ComparatorT;
 	using optional_value_t = std::experimental::optional<ValueT>;
 	static constexpr idx_t null = static_cast<idx_t>(-1);
-	static constexpr bool DEGRADE_NODE_ON_SEARCH = true;
+	static constexpr bool DEGRADE_NODE_ON_SEARCH = DegradationRate > 0;
 
 	struct Node {
 		key_t key;
@@ -235,13 +235,13 @@ class WeightedSearchTree {
 		while (n != null) {
 			if (comparator_(key, _(n).key)) {
 				if (DEGRADE_NODE_ON_SEARCH && degrade_priority) {
-					_(n).priority.visit();
+					_(n).priority.visit(DegradationRate);
 					n = bottomUpHeapify(n);
 				}
 				n = _(n).left;
 			} else if (comparator_(_(n).key, key)) {
 				if (DEGRADE_NODE_ON_SEARCH && degrade_priority) {
-					_(n).priority.visit();
+					_(n).priority.visit(DegradationRate);
 					n = bottomUpHeapify(n);
 				}
 				n = _(n).right;
@@ -622,10 +622,10 @@ class WeightedSearchTree {
 	comparator_t comparator_;
 };
 
-template <typename ComparatorT = std::less<>>
+template <int DegradationRate, typename ComparatorT = std::less<>>
 struct WeightedSearchTreeTypeHolder {
 	template <typename KeyT, typename ValueT>
-	using container_t = WeightedSearchTree<KeyT, ValueT, ComparatorT>;
+	using container_t = WeightedSearchTree<KeyT, ValueT, ComparatorT, DegradationRate>;
 };
 
 #endif //NUMDB_WEIGHTED_SEARCH_TREE_H
