@@ -622,4 +622,10 @@ class WeightedSearchTree {
 	comparator_t comparator_;
 };
 
+template <typename ComparatorT = std::less<>>
+struct WeightedSearchTreeTypeHolder {
+	template <typename KeyT, typename ValueT>
+	using container_t = WeightedSearchTree<KeyT, ValueT, ComparatorT>;
+};
+
 #endif //NUMDB_WEIGHTED_SEARCH_TREE_H
