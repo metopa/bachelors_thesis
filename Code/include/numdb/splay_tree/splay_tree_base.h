@@ -58,9 +58,8 @@ class SplayTreeBase {
 		friend class SplayTreeBase;
 		friend CrtpDerived;
 
-		Node(key_t key, value_t value,
-			 strategy_t strategy = strategy_t()) :
-				strategy_t(strategy),
+		Node(key_t key, value_t value, uint64_t priority) :
+				strategy_t(priority),
 				key_(std::move(key)),
 				value_(std::move(value)),
 				left_(nullptr), right_(nullptr) {}
@@ -178,11 +177,11 @@ class SplayTreeBase {
 	 * @warning insert assumes that there's no such key exists and does no additional checks
 	 * @return
 	 */
-	bool insert(key_t key, value_t value, size_t priority) {
+	bool insert(key_t key, value_t value, uint64_t priority) {
 		//TODO use priority
 		Node* node;
 		if (node_count_ < max_node_count_)
-			node = new Node(std::move(key), std::move(value));
+			node = new Node(std::move(key), std::move(value), priority);
 		else {
 			node = extractLruNode(key);
 			assert(node != nullptr);

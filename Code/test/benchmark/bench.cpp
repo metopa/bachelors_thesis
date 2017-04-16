@@ -72,6 +72,7 @@ BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<AccessCountSplayStrategy>)-
 BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<CanonicalSplayStrategy>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<AccessCountSplayStrategy>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<WstSplayStrategy<1>>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<1>)->BENCH_ARGS;
 //BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<2>)->BENCH_ARGS;
 //BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<3>)->BENCH_ARGS;

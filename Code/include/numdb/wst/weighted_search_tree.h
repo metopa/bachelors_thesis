@@ -14,22 +14,25 @@
 #include <cassert>
 #include <ostream>
 
-class WstPriority {
+class WstAvlPriority {
   public:
-	WstPriority(unsigned int priority) : priority_(std::max<unsigned>(priority, 1)) {
+	WstAvlPriority(unsigned int priority) : priority_(std::max<unsigned>(priority, 1)) {
 		setAvlBalance(0);
 	}
 
 	void visit(int degradation_rate) {
 		if (priority_ > 256 * degradation_rate)
 			priority_ -= 256 * degradation_rate;
+		else
+			priority_ &= 0xFF;
 	}
 
 	void access() {
 		uint32_t priority = priority_;
 		constexpr uint32_t max_priority = (1 << 30) - 1;
 		priority += (priority & 0xFF) << 8;
-		priority_ = std::min(priority, max_priority);
+		priority_ = std::min(priority, max_priority) & 0xFFFFFF00
+													   + priority_ & 0xFF;
 	}
 
 	size_t value() {
@@ -45,7 +48,7 @@ class WstPriority {
 		balance_ = b;
 	}
 
-	bool operator <(const WstPriority& other) const {
+	bool operator <(const WstAvlPriority& other) const {
 		return priority_ < other.priority_;
 	}
 
@@ -54,14 +57,14 @@ class WstPriority {
 	uint32_t priority_ : 30;
 };
 
-static_assert(sizeof(WstPriority) == 4, "Invalid wst priority size");
+static_assert(sizeof(WstAvlPriority) == 4, "Invalid wst priority size");
 
 template <typename KeyT, typename ValueT, typename ComparatorT, int DegradationRate>
 class WeightedSearchTree {
 	using idx_t = std::size_t;
 	using key_t = KeyT;
 	using value_t = ValueT;
-	using priority_t = WstPriority;
+	using priority_t = WstAvlPriority;
 	using comparator_t = ComparatorT;
 	using optional_value_t = std::experimental::optional<ValueT>;
 	static constexpr idx_t null = static_cast<idx_t>(-1);
