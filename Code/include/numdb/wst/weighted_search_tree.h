@@ -56,15 +56,12 @@ class WstPriority {
 
 static_assert(sizeof(WstPriority) == 4, "Invalid wst priority size");
 
-template <
-		typename KeyT, typename ValueT,
-		/*typename PriorityT,*/ typename ComparatorT>
+template <typename KeyT, typename ValueT, typename ComparatorT>
 class WeightedSearchTree {
-	using PriorityT = WstPriority;
 	using idx_t = std::size_t;
 	using key_t = KeyT;
 	using value_t = ValueT;
-	using priority_t = PriorityT;
+	using priority_t = WstPriority;
 	using comparator_t = ComparatorT;
 	using optional_value_t = std::experimental::optional<ValueT>;
 	static constexpr idx_t null = static_cast<idx_t>(-1);
@@ -192,8 +189,8 @@ class WeightedSearchTree {
 		if (node == null)
 			out << "#" << std::endl;
 		else {
-			out << _(node).key << "->" << std::hex <<
-				_(node).priority.value() << std::dec << std::endl;
+			out << _(node).key << "->" << _(node).priority.value() / 256
+				<< ',' << _(node).priority.value() % 256 << std::endl;
 			if (heapLeft(node) != null || heapRight(node) != null) {
 				dumpHeap(heapLeft(node), out, level + 1);
 				dumpHeap(heapRight(node), out, level + 1);

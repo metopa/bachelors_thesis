@@ -47,10 +47,10 @@ class FunctionCacheCore {
 		event_counter_.invokeUserFunc();
 		auto start = high_resolution_clock::now();
 		DEFERRED(
-				priority = priority_generator_.calculatePriority(
-						(uint64_t) duration_cast<microseconds>(
-								high_resolution_clock::now() - start
-						).count())
+			priority = priority_generator_.calculatePriority(
+					(uint64_t) duration_cast<microseconds>(
+							high_resolution_clock::now() - start
+					).count());
 		);
 		return std::experimental::apply(user_func_, args);
 	}
