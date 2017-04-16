@@ -56,7 +56,7 @@ class FunctionCacheCore {
 	}
 
   private:
-	InitialPriorityGenerator<256> priority_generator_;
+	ProportionPriorityGenerator<256> priority_generator_;
 	UserFuncT user_func_;
 	EventCounterT event_counter_;
 };
