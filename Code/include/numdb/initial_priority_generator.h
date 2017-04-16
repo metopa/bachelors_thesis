@@ -26,7 +26,6 @@ class MinMaxInterpolationPriorityGenerator {
 		count_++;
 
 		if (count_ > IterationsUntilUpdate) {
-			std::cerr << min_ << "|" << sum_ / count_ << "|" << max_ << "->";
 			count_ /= 2;
 			sum_ /= 2;
 			uint64_t avg = sum_ / count_;
@@ -34,8 +33,6 @@ class MinMaxInterpolationPriorityGenerator {
 									  max_ - avg);
 			min_ = avg - delta;
 			max_ = avg + delta;
-			std::cerr << min_ << "|" << sum_ / count_ << "|" << max_ << std::endl;
-
 		}
 
 		if (duration < min_)
