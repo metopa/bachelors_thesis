@@ -141,7 +141,7 @@ class FixedHashtableBase {
 
 		Node* new_node = nullptr;
 		if (count_ == max_count_) {
-			new_node = extractLruNode();
+			new_node = extractLuNode();
 			new_node->key_ = std::move(key);
 			new_node->value_ = std::move(value);
 		} else
@@ -218,9 +218,9 @@ class FixedHashtableBase {
 		static_cast<CrtpDerived*>(this)->nodeExtractedImpl(node);
 	}
 
-	Node* extractLruNode() {
+	Node* extractLuNode() {
 		assert(count_ == max_count_);
-		Node* candidate = static_cast<CrtpDerived*>(this)->getLruNodeImpl();
+		Node* candidate = static_cast<CrtpDerived*>(this)->getLuNodeImpl();
 		assert(candidate != nullptr);
 		Node** node_ref = &buckets_[getBucket(candidate->key_)];
 		///Node forms a single linked list, so we need to search for the node again
@@ -245,7 +245,7 @@ class FixedHashtableBase {
 	void nodeAccessedImpl(Node* node);
 	void nodeInsertedImpl(Node* node);
 	void nodeExtractedImpl(Node* node);
-	Node* getLruNodeImpl();
+	Node* getLuNodeImpl();
 
   private:
 	std::vector<Node*> buckets_;

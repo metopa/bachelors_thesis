@@ -22,7 +22,7 @@ void FairLRU::Node::insertAfter(FairLRU::Node* node) {
 FairLRU::FairLRU() {
 	tail_.insertAfter(&head_);
 }
-FairLRU::Node* FairLRU::extractLruNode() {
+FairLRU::Node* FairLRU::extractLuNode() {
 	if (head_.next == &tail_)
 		return nullptr;
 	return head_.next->extract();

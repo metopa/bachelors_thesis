@@ -52,7 +52,7 @@ class SplayTreeBottomNode :
 	void nodeVisitedImpl(node_t* node) {}
 	void nodeInsertedImpl(node_t* node) {}
 	void nodeExtractedImpl(node_t* node) {}
-	node_t** getLruNodeRefImpl(const typename base_t::key_t& key) {
+	node_t** getLuNodeRefImpl(const typename base_t::key_t& key) {
 		size_t pseudo_random = mmh2::getMurmurHash2(key);
 		node_t** node = &(base_t::root_);
 		while (true) {

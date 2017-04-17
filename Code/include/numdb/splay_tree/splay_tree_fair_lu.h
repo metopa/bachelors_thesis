@@ -4,8 +4,8 @@
  *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
-#ifndef NUMDB_SPLAY_TREE_FAIR_LRU_H
-#define NUMDB_SPLAY_TREE_FAIR_LRU_H
+#ifndef NUMDB_SPLAY_TREE_FAIR_LU_H
+#define NUMDB_SPLAY_TREE_FAIR_LU_H
 
 #include "../fair_lru.h"
 #include "../utils.h"
@@ -13,11 +13,11 @@
 
 template <typename KeyT, typename ValueT,
 		typename SplayStrategyT, typename ComparatorT>
-class SplayTreeFairLRU;
+class SplayTreeFairLeastUsed;
 
 template <typename KeyT, typename ValueT,
 		typename SplayStrategyT, typename ComparatorT>
-struct CacheContainerTraits<SplayTreeFairLRU
+struct CacheContainerTraits<SplayTreeFairLeastUsed
 		<KeyT, ValueT, SplayStrategyT, ComparatorT>> {
 	using key_t = KeyT;
 	using value_t = ValueT;
@@ -28,36 +28,36 @@ struct CacheContainerTraits<SplayTreeFairLRU
 };
 
 template <typename SplayStrategyT, typename ComparatorT = std::less<>>
-struct SplayTreeFairLRUTypeHolder {
+struct SplayTreeFairLeastUsedTypeHolder {
 	template <typename KeyT, typename ValueT>
-	using container_t = SplayTreeFairLRU<KeyT, ValueT,
+	using container_t = SplayTreeFairLeastUsed<KeyT, ValueT,
 			SplayStrategyT, ComparatorT>;
 };
 
 template <typename KeyT, typename ValueT,
 		typename SplayStrategyT, typename ComparatorT>
-class SplayTreeFairLRU : public SplayTreeBase<
-		SplayTreeFairLRU<KeyT, ValueT, SplayStrategyT, ComparatorT>> {
+class SplayTreeFairLeastUsed : public SplayTreeBase<
+		SplayTreeFairLeastUsed<KeyT, ValueT, SplayStrategyT, ComparatorT>> {
   public:
 	using base_t = SplayTreeBase<
-			SplayTreeFairLRU<KeyT, ValueT, SplayStrategyT, ComparatorT>>;
+			SplayTreeFairLeastUsed<KeyT, ValueT, SplayStrategyT, ComparatorT>>;
 	using node_t = typename base_t::Node;
 
-	SplayTreeFairLRU(size_t max_node_count, ComparatorT comparator = {}) :
+	SplayTreeFairLeastUsed(size_t max_node_count, ComparatorT comparator = {}) :
 			base_t(max_node_count, std::move(comparator)) {}
 
 	void nodeAccessedImpl(node_t* node) {
-		lru_manager_.markRecentlyUsed(node);
+		lu_manager_.markRecentlyUsed(node);
 	}
 	void nodeVisitedImpl(node_t* node) {}
 	void nodeInsertedImpl(node_t* node) {
-		lru_manager_.insertNode(node);
+		lu_manager_.insertNode(node);
 	}
 	void nodeExtractedImpl(node_t* node) {
-		lru_manager_.extractNode(node);
+		lu_manager_.extractNode(node);
 	}
-	node_t** getLruNodeRefImpl(const typename base_t::key_t& /*key*/) {
-		node_t* node = static_cast<node_t*>(lru_manager_.extractLruNode());
+	node_t** getLuNodeRefImpl(const typename base_t::key_t& /*key*/) {
+		node_t* node = static_cast<node_t*>(lu_manager_.extractLuNode());
 		assert(node != nullptr);
 		assert(node->hasRefToSelf());
 		assert(node->getRefToSelf() != nullptr);
@@ -65,7 +65,7 @@ class SplayTreeFairLRU : public SplayTreeBase<
 	}
 
   private:
-	FairLRU lru_manager_;
+	FairLRU lu_manager_;
 };
 
-#endif //NUMDB_SPLAY_TREE_FAIR_LRU_H
+#endif //NUMDB_SPLAY_TREE_FAIR_LU_H

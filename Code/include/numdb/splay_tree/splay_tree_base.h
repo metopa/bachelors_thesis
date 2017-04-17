@@ -55,6 +55,7 @@ class SplayTreeBase {
 			public strategy_t,
 			public node_base_t,
 			public RefToSelfPolicy<Node, traits::enableRefToSelf()> {
+	  public:
 		friend class SplayTreeBase;
 		friend CrtpDerived;
 
@@ -94,7 +95,6 @@ class SplayTreeBase {
 			}
 		}
 
-	  private:
 		// This member ordering is designed to keep
 		// the most frequently accessed members
 		// in the beginning of the object
@@ -178,12 +178,11 @@ class SplayTreeBase {
 	 * @return
 	 */
 	bool insert(key_t key, value_t value, uint64_t priority) {
-		//TODO use priority
 		Node* node;
 		if (node_count_ < max_node_count_)
 			node = new Node(std::move(key), std::move(value), priority);
 		else {
-			node = extractLruNode(key);
+			node = extractLuNode(key);
 			assert(node != nullptr);
 			node->key_ = std::move(key);
 			node->value_ = std::move(value);
@@ -267,17 +266,17 @@ class SplayTreeBase {
 
 		if (comparator_(key, node->key_)) {
 			if (mark_visited)
-				node->visited();
+				nodeVisited(node);
 			child_type = EChildType::LEFT;
 			result = findImplSplay(key, node->left_, grandchild, false, mark_visited);
 		} else if (comparator_(node->key_, key)) {
 			if (mark_visited)
-				node->visited();
+				nodeVisited(node);
 			child_type = EChildType::RIGHT;
 			result = findImplSplay(key, node->right_, grandchild, false, mark_visited);
 		} else /*key == node->key_*/ {
 			if (mark_visited)
-				node->accessed();
+				nodeAccessed(node);
 			return node;
 		}
 
@@ -415,10 +414,12 @@ class SplayTreeBase {
 
   private:
 	void nodeAccessed(Node* node) {
+		node->accessed();
 		static_cast<CrtpDerived*>(this)->nodeAccessedImpl(node);
 	}
 
 	void nodeVisited(Node* node) {
+		node->visited();
 		static_cast<CrtpDerived*>(this)->nodeVisitedImpl(node);
 	}
 
@@ -434,10 +435,10 @@ class SplayTreeBase {
 		static_cast<CrtpDerived*>(this)->nodeExtractedImpl(node);
 	}
 
-	Node* extractLruNode(const key_t& key) {
+	Node* extractLuNode(const key_t& key) {
 		assert(node_count_ == max_node_count_);
 		assert(node_count_ > 0);
-		Node** candidate = static_cast<CrtpDerived*>(this)->getLruNodeRefImpl(key);
+		Node** candidate = static_cast<CrtpDerived*>(this)->getLuNodeRefImpl(key);
 		assert(candidate != nullptr);
 		node_count_--;
 		return extractNodeImpl(*candidate);
@@ -450,7 +451,7 @@ class SplayTreeBase {
 	void nodeVisitedImpl(Node* node);
 	void nodeInsertedImpl(Node* node);
 	void nodeExtractedImpl(Node* node);
-	Node** getLruNodeRefImpl(const key_t& key);
+	Node** getLuNodeRefImpl(const key_t& key);
 
 	Node* root_;
 	size_t node_count_;

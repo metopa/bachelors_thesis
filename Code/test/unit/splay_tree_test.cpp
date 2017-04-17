@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <numdb/splay_tree/splay_tree_fair_lru.h>
+#include <numdb/splay_tree/splay_tree_fair_lu.h>
 #include <numdb/splay_tree/splay_tree_strategy.h>
 #include <murmurhash2/functor.hpp>
 
@@ -10,7 +10,7 @@
  */
  
 TEST(SplayTree, basic) {
-	using container_t = typename SplayTreeFairLRUTypeHolder
+	using container_t = typename SplayTreeFairLeastUsedTypeHolder
 			<CanonicalSplayStrategy>::template container_t<int, int>;
 	container_t tree(container_t::elementSize() * 8);
 	tree.insert(5, 5);
@@ -23,7 +23,7 @@ TEST(SplayTree, basic) {
 }
 
 TEST(SplayTree, many_insertions) {
-	using container_t = typename SplayTreeFairLRUTypeHolder
+	using container_t = typename SplayTreeFairLeastUsedTypeHolder
 			<CanonicalSplayStrategy>::template container_t<size_t, int>;
 	container_t tree(container_t::elementSize() * 100);
 	double avg_height = 0;

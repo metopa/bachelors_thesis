@@ -14,10 +14,10 @@
 #include "numdb/fair_lru.h"
 
 template <typename KeyT, typename ValueT, typename HasherT>
-class FixedHashtableFairLRU;
+class FixedHashtableFairLeastUsed;
 
 template <typename KeyT, typename ValueT, typename HasherT>
-struct CacheContainerTraits<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
+struct CacheContainerTraits<FixedHashtableFairLeastUsed<KeyT, ValueT, HasherT>> {
 	using key_t = KeyT;
 	using value_t = ValueT;
 	using hasher_t = HasherT;
@@ -25,44 +25,44 @@ struct CacheContainerTraits<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
 };
 
 template <typename HasherT = mmh2::MurmurHash2<void>>
-struct FixedHashtableFairLRUTypeHolder {
+struct FixedHashtableFairLeastUsedTypeHolder {
 	template <typename KeyT, typename ValueT>
-	using container_t = FixedHashtableFairLRU<KeyT, ValueT, HasherT>;
+	using container_t = FixedHashtableFairLeastUsed<KeyT, ValueT, HasherT>;
 };
 
 template <typename KeyT, typename ValueT, typename HasherT>
-class FixedHashtableFairLRU :
-		public FixedHashtableBase<FixedHashtableFairLRU<KeyT, ValueT, HasherT>> {
+class FixedHashtableFairLeastUsed :
+		public FixedHashtableBase<FixedHashtableFairLeastUsed<KeyT, ValueT, HasherT>> {
 
   public:
 	using base_t = FixedHashtableBase<
-			FixedHashtableFairLRU<KeyT, ValueT, HasherT>>;
+			FixedHashtableFairLeastUsed<KeyT, ValueT, HasherT>>;
 	using node_t = typename base_t::Node;
 
 	friend base_t;
 
-	FixedHashtableFairLRU(size_t available_memory, double load_factor = 2) :
+	FixedHashtableFairLeastUsed(size_t available_memory, double load_factor = 2) :
 			base_t(available_memory, load_factor) {}
 
   protected:
 	void nodeAccessedImpl(node_t* node) {
-		lru_manager_.markRecentlyUsed(node);
+		lu_manager_.markRecentlyUsed(node);
 	}
 
 	void nodeInsertedImpl(node_t* node) {
-		lru_manager_.insertNode(node);
+		lu_manager_.insertNode(node);
 	}
 
 	void nodeExtractedImpl(node_t* node) {
-		lru_manager_.extractNode(node);
+		lu_manager_.extractNode(node);
 	}
 
-	node_t* getLruNodeImpl() {
-		return static_cast<node_t*>(lru_manager_.extractLruNode());
+	node_t* getLuNodeImpl() {
+		return static_cast<node_t*>(lu_manager_.extractLuNode());
 	}
 
   private:
-	FairLRU lru_manager_;
+	FairLRU lu_manager_;
 };
 
 #endif //NUMDB_FIXED_HASHTABLE_FAIR_LRU_H

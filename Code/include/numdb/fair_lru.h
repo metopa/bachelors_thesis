@@ -31,7 +31,7 @@ class FairLRU {
 	FairLRU(const FairLRU&) = delete;
 	FairLRU& operator =(const FairLRU&) = delete;
 
-	Node* extractLruNode();
+	Node* extractLuNode();
 	void markRecentlyUsed(Node* node);
 	void insertNode(Node* node);
 	void extractNode(Node* node);
