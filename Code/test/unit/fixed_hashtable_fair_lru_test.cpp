@@ -6,10 +6,10 @@
 
 
 #include <gtest/gtest.h>
-#include "numdb/hash_table/fixed_hashtable_fair_lru.h"
+#include "numdb/hash_table/fixed_hashtable_fair_lu.h"
 
 TEST(HashTable_FairLRU, basic) {
-	using container_t = typename FixedHashtableFairLRUTypeHolder<>::template container_t<int, std::string>;
+	using container_t = typename FixedHashtableFairLeastUsedTypeHolder<>::template container_t<int, std::string>;
 	container_t ht(20 * container_t::elementSize(0.5), 0.5);
 	ht.insert(10, "AAA");
 	auto result = ht.find(10);
@@ -20,7 +20,7 @@ TEST(HashTable_FairLRU, basic) {
 }
 
 TEST(HashTable_FairLRU, tuple_key) {
-	using container_t = typename FixedHashtableFairLRUTypeHolder<>::template container_t<
+	using container_t = typename FixedHashtableFairLeastUsedTypeHolder<>::template container_t<
 			std::tuple<double, double, double>,
 			std::string>;
 	container_t ht(20 * container_t::elementSize(0.5), 0.5);
@@ -50,7 +50,7 @@ TEST(HashTable_FairLRU, tuple_key) {
 }
 
 TEST(HashTable_FairLRU, limit_element_count_1) {
-	using container_t = typename FixedHashtableFairLRUTypeHolder<>::template container_t<int, int>;
+	using container_t = typename FixedHashtableFairLeastUsedTypeHolder<>::template container_t<int, int>;
 	container_t ht(10 * container_t::elementSize(0.5), 0.5);
 	for (int i = 10; i < 25; i++)
 		ht.insert(i, i);
@@ -68,7 +68,7 @@ TEST(HashTable_FairLRU, limit_element_count_1) {
 }
 
 TEST(HashTable_FairLRU, lru_test) {
-	using container_t = typename FixedHashtableFairLRUTypeHolder<>::template container_t<int, int>;
+	using container_t = typename FixedHashtableFairLeastUsedTypeHolder<>::template container_t<int, int>;
 	container_t ht(10 * container_t::elementSize(0.5), 0.5);
 	for (int i = 10; i < 25; i++)
 		ht.insert(i, i);

@@ -8,7 +8,6 @@
 #include <numdb/splay_tree/splay_tree_strategy.h>
 #include <numdb/wst/weighted_search_tree.h>
 
-
 #include "benchmark/benchmark.h"
 
 #include "numdb/numdb.h"
@@ -64,21 +63,23 @@ void BM(benchmark::State& state) {
 constexpr int max_arg = 29;
 constexpr int min_arg = 33;
 
-#define BENCH_ARGS Args({min_arg, max_arg, 10, 70, 10})
+#define BENCH_ARGS Args({min_arg, max_arg, 10, 95, 0})->Args({min_arg, max_arg, 10, 95, 1})
 
-BENCHMARK_TEMPLATE(BM, FixedHashtableFairLRUTypeHolder<>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, FixedHashtableFairLeastUsedTypeHolder<>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<CanonicalSplayStrategy>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<CanonicalSplayStrategy>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<AccessCountSplayStrategy>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<AccessCountSplayStrategy>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<CanonicalSplayStrategy>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<AccessCountSplayStrategy>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLRUTypeHolder<WstSplayStrategy<1>>)->BENCH_ARGS;
+
+//BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<AccessCountSplayStrategy>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<WstSplayStrategy<1>>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<0>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<1>)->BENCH_ARGS;
-//BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<2>)->BENCH_ARGS;
-//BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<3>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<2>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<4>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<64>)->BENCH_ARGS;
 
-BENCHMARK_TEMPLATE(BM, DummyContainerTypeHolder)->
-		Args({min_arg, max_arg, 10, 70});
+BENCHMARK_TEMPLATE(BM, DummyContainerTypeHolder)->BENCH_ARGS;
 
 BENCHMARK_MAIN();
