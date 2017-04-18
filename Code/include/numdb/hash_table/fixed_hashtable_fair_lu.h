@@ -13,30 +13,31 @@
 #include "numdb/utils.h"
 #include "numdb/fair_lru.h"
 
-template <typename KeyT, typename ValueT, typename HasherT>
+template <typename KeyT, typename ValueT, typename LuStrategyT, typename HasherT>
 class FixedHashtableFairLeastUsed;
 
-template <typename KeyT, typename ValueT, typename HasherT>
-struct CacheContainerTraits<FixedHashtableFairLeastUsed<KeyT, ValueT, HasherT>> {
+template <typename KeyT, typename ValueT, typename LuStrategyT, typename HasherT>
+struct CacheContainerTraits<FixedHashtableFairLeastUsed<KeyT, ValueT, LuStrategyT, HasherT>> {
 	using key_t = KeyT;
 	using value_t = ValueT;
+	using lu_strategy_t = LuStrategyT;
 	using hasher_t = HasherT;
-	using node_base_t = FairLRU::Node;
+	using node_base_t = typename LuStrategyT::Node;
 };
 
-template <typename HasherT = mmh2::MurmurHash2<void>>
+template <typename LuStrategyT, typename HasherT = mmh2::MurmurHash2<void>>
 struct FixedHashtableFairLeastUsedTypeHolder {
 	template <typename KeyT, typename ValueT>
-	using container_t = FixedHashtableFairLeastUsed<KeyT, ValueT, HasherT>;
+	using container_t = FixedHashtableFairLeastUsed<KeyT, ValueT, LuStrategyT, HasherT>;
 };
 
-template <typename KeyT, typename ValueT, typename HasherT>
+template <typename KeyT, typename ValueT, typename LuStrategyT, typename HasherT>
 class FixedHashtableFairLeastUsed :
-		public FixedHashtableBase<FixedHashtableFairLeastUsed<KeyT, ValueT, HasherT>> {
+		public FixedHashtableBase<FixedHashtableFairLeastUsed<KeyT, ValueT,  LuStrategyT, HasherT>> {
 
   public:
 	using base_t = FixedHashtableBase<
-			FixedHashtableFairLeastUsed<KeyT, ValueT, HasherT>>;
+			FixedHashtableFairLeastUsed<KeyT, ValueT, LuStrategyT, HasherT>>;
 	using node_t = typename base_t::Node;
 
 	friend base_t;
@@ -62,7 +63,7 @@ class FixedHashtableFairLeastUsed :
 	}
 
   private:
-	FairLRU lu_manager_;
+	LuStrategyT lu_manager_;
 };
 
 #endif //NUMDB_FIXED_HASHTABLE_FAIR_LRU_H
