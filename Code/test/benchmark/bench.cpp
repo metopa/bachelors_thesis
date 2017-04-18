@@ -7,6 +7,7 @@
 #include <random>
 #include <numdb/splay_tree/splay_tree_strategy.h>
 #include <numdb/wst/weighted_search_tree.h>
+#include <numdb/fair_lfu.h>
 
 #include "benchmark/benchmark.h"
 
@@ -65,15 +66,16 @@ constexpr int min_arg = 33;
 
 #define BENCH_ARGS Args({min_arg, max_arg, 10, 95, 0})->Args({min_arg, max_arg, 10, 95, 1})
 
-BENCHMARK_TEMPLATE(BM, FixedHashtableFairLeastUsedTypeHolder<>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<CanonicalSplayStrategy>)->BENCH_ARGS;
+//BENCHMARK_TEMPLATE(BM, FixedHashtableFairLeastUsedTypeHolder<>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLFU, CanonicalSplayStrategy>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLRU, CanonicalSplayStrategy>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLRU, AccessCountSplayStrategy>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<CanonicalSplayStrategy>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<AccessCountSplayStrategy>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<AccessCountSplayStrategy>)->BENCH_ARGS;
 
 //BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<AccessCountSplayStrategy>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<WstSplayStrategy<1>>)->BENCH_ARGS;
+//BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<AccessCountSplayStrategy>)->BENCH_ARGS;
+//BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<WstSplayStrategy<1>>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<0>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<1>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<2>)->BENCH_ARGS;
