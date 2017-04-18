@@ -32,6 +32,9 @@ class FairLFU {
 		Node* group_next = nullptr;
 	};
 
+	FairLFU() {
+		head_.group_next = &head_;
+	}
 	FairLFU(const FairLFU&) = delete;
 	FairLFU& operator =(const FairLFU&) = delete;
 
@@ -50,7 +53,17 @@ class FairLFU {
 			 node->access_frequency < node->next->access_frequency))
 			return;
 		extractNode(node);
-		insertAfter(node->group_next ? node->group_next : node->next, node);
+		if (node->group_next)
+			insertAfter(node->group_next, node);
+		else {
+			Node* prev = node->prev;
+			while (!prev->group_next) {
+				assert(prev->prev);
+				prev = prev->prev;
+			}
+			insertAfter(prev, node);
+		}
+
 	}
 
 	void insertNode(Node* node) {
@@ -66,7 +79,7 @@ class FairLFU {
 			if (node->group_next == node) {
 				if (node->prev) {
 					assert(node->prev->next == node);
-					assert(node->)
+					assert(node->prev->access_frequency < node->access_frequency);
 					node->prev->next = node->next;
 				}
 				if (node->next) {
@@ -114,7 +127,7 @@ class FairLFU {
 		if (prev->access_frequency == node->access_frequency) {
 			node->group_next = nullptr;
 			node->prev = prev;
-			node->next = prev->group_next == prev ? nullptr : prev->next;
+			node->next = prev->group_next == prev ? nullptr : prev->group_next;
 			prev->group_next = node;
 			if (node->next)
 				node->next->prev = node;
