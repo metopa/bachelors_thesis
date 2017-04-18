@@ -12,35 +12,46 @@
 #include "splay_tree_base.h"
 
 template <typename KeyT, typename ValueT,
-		typename SplayStrategyT, typename ComparatorT>
+		typename LuStrategyT,
+		typename SplayStrategyT,
+		typename ComparatorT>
 class SplayTreeFairLeastUsed;
 
 template <typename KeyT, typename ValueT,
-		typename SplayStrategyT, typename ComparatorT>
+		typename LuStrategyT,
+		typename SplayStrategyT,
+		typename ComparatorT>
 struct CacheContainerTraits<SplayTreeFairLeastUsed
-		<KeyT, ValueT, SplayStrategyT, ComparatorT>> {
+		<KeyT, ValueT, LuStrategyT, SplayStrategyT, ComparatorT>> {
 	using key_t = KeyT;
 	using value_t = ValueT;
 	using strategy_t = SplayStrategyT;
 	using comparator_t = ComparatorT;
-	using node_base_t = FairLRU::Node;
+	using node_base_t = typename LuStrategyT::Node;
 	static constexpr bool enableRefToSelf() { return true; }
 };
 
-template <typename SplayStrategyT, typename ComparatorT = std::less<>>
+template <
+		typename LuStrategyT,
+		typename SplayStrategyT,
+		typename ComparatorT = std::less<>>
 struct SplayTreeFairLeastUsedTypeHolder {
 	template <typename KeyT, typename ValueT>
 	using container_t = SplayTreeFairLeastUsed<KeyT, ValueT,
-			SplayStrategyT, ComparatorT>;
+			LuStrategyT, SplayStrategyT, ComparatorT>;
 };
 
 template <typename KeyT, typename ValueT,
-		typename SplayStrategyT, typename ComparatorT>
+		typename LuStrategyT,
+		typename SplayStrategyT,
+		typename ComparatorT>
 class SplayTreeFairLeastUsed : public SplayTreeBase<
-		SplayTreeFairLeastUsed<KeyT, ValueT, SplayStrategyT, ComparatorT>> {
+		SplayTreeFairLeastUsed<KeyT, ValueT,
+				LuStrategyT, SplayStrategyT, ComparatorT>> {
   public:
 	using base_t = SplayTreeBase<
-			SplayTreeFairLeastUsed<KeyT, ValueT, SplayStrategyT, ComparatorT>>;
+			SplayTreeFairLeastUsed<KeyT, ValueT,
+					LuStrategyT, SplayStrategyT, ComparatorT>>;
 	using node_t = typename base_t::Node;
 
 	SplayTreeFairLeastUsed(size_t max_node_count, ComparatorT comparator = {}) :
@@ -65,7 +76,7 @@ class SplayTreeFairLeastUsed : public SplayTreeBase<
 	}
 
   private:
-	FairLRU lu_manager_;
+	LuStrategyT lu_manager_;
 };
 
 #endif //NUMDB_SPLAY_TREE_FAIR_LU_H
