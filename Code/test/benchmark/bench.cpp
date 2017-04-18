@@ -66,7 +66,8 @@ constexpr int min_arg = 33;
 
 #define BENCH_ARGS Args({min_arg, max_arg, 10, 95, 0})->Args({min_arg, max_arg, 10, 95, 1})
 
-//BENCHMARK_TEMPLATE(BM, FixedHashtableFairLeastUsedTypeHolder<>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, FixedHashtableFairLeastUsedTypeHolder<FairLRU>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, FixedHashtableFairLeastUsedTypeHolder<FairLFU>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLFU, CanonicalSplayStrategy>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLRU, CanonicalSplayStrategy>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLRU, AccessCountSplayStrategy>)->BENCH_ARGS;
