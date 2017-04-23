@@ -9,7 +9,6 @@
 
 #include <murmurhash2/all.h>
 #include <function_traits/functional_unwrap.hpp>
-#include "numdb/function_cache_core.h"
 #include "numdb/event_counter.h"
 #include "numdb/utils.h"
 
@@ -20,16 +19,22 @@ template <
 		typename UserFuncArgsTupleT = fu::argument_tuple_type_of_t<UserFuncT>
 >
 class FunctionCache {
-	using core_t = FunctionCacheCore
-			<UserFuncT, UserFuncArgsTupleT, EventCounterT>;
-	using container_t = typename ContainerTypeHolder::template container_t<
-			typename core_t::args_tuple_t, typename core_t::return_t>;
-
   public:
+	using user_func_t = UserFuncT;
+	using args_tuple_t = UserFuncArgsTupleT;
+	using return_t =
+	decltype(std::experimental::apply(
+			std::declval<UserFuncT>(),
+			std::declval<args_tuple_t>()));
+	using event_counter_t = EventCounterT;
+	using container_t = typename ContainerTypeHolder::template
+		container_t<args_tuple_t, return_t>;
+
+
 	template <typename... ContainerArgs>
 	FunctionCache(UserFuncT user_func, size_t available_memory,
 				  ContainerArgs&& ... container_args) :
-			core_(std::move(user_func)),
+			user_func_(std::move(user_func)),
 			container_(available_memory,
 					   std::forward<ContainerArgs>(container_args)...) {}
 
@@ -50,41 +55,53 @@ class FunctionCache {
 	}
 
 	double elementSizeOverhead() const {
-		return 1 - static_cast<double>(
-						   sizeof(typename core_t::args_tuple_t) +
-						   sizeof(typename core_t::return_t))
-				   / elementSize();
+		return 1 - (sizeof(args_tuple_t) + sizeof(return_t)) /
+				   (double) elementSize();
 	}
 
 	EventCounterT& eventCounter() {
-		return core_.getEventCounter();
+		return event_counter_;
 	}
 
 	template <typename... Args>
 	auto operator ()(Args&& ... args) {
-		static_assert(
-				std::is_convertible<
-						std::tuple<Args...>,
-						typename core_t::args_tuple_t>::value,
-				"Cannot convert provided arguments.");
+		static_assert(std::is_convertible<
+							  std::tuple<Args...>, args_tuple_t>::value,
+					  "Cannot convert provided arguments.");
 
-		core_.getEventCounter().retrieve();
+		event_counter_.retrieve();
 
-		typename core_t::args_tuple_t key(std::forward<Args>(args)...);
+		args_tuple_t key(std::forward<Args>(args)...);
 
 		auto res = container_.find(key);
 		if (res) {
 			return *res;
 		}
 		size_t priority = 0;
-		auto computed_res = core_.invokeUserFunc(key, priority);
+		auto computed_res = invokeUserFunc(key, priority);
 		container_.insert(std::move(key), computed_res, priority);
 		return std::move(computed_res);
 	}
 
   private:
-	core_t core_;
+	auto invokeUserFunc(const UserFuncArgsTupleT& args,
+						size_t& priority) {
+		using namespace std::chrono;
+		event_counter_.invokeUserFunc();
+		auto start = high_resolution_clock::now();
+		DEFERRED(
+				priority = priority_generator_.calculatePriority(
+						(uint64_t) duration_cast<microseconds>(
+								high_resolution_clock::now() - start
+						).count());
+		);
+		return std::experimental::apply(user_func_, args);
+	}
+
 	container_t container_;
+	ProportionPriorityGenerator<256> priority_generator_;
+	UserFuncT user_func_;
+	EventCounterT event_counter_;
 };
 
 #endif //NUMDB_FUNCTION_CACHE_H
