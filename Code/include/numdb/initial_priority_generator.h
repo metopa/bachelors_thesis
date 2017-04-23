@@ -54,7 +54,7 @@ template <
 		uint64_t MaxPriority,
 		uint64_t InitialLearningIterations = 100,
 		uint64_t IterationsUntilUpdate = 10240>
-class ProportionPriorityGenerator {
+class RatioPriorityGenerator {
 	uint64_t sum_ = 0;
 	uint64_t count_ = 0;
 

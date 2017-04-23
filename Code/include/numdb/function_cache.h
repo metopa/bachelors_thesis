@@ -7,10 +7,14 @@
 #ifndef NUMDB_FUNCTION_CACHE_H
 #define NUMDB_FUNCTION_CACHE_H
 
+#include <chrono>
+
 #include <murmurhash2/all.h>
 #include <function_traits/functional_unwrap.hpp>
+
 #include "numdb/event_counter.h"
 #include "numdb/utils.h"
+#include "numdb/initial_priority_generator.h"
 
 template <
 		typename UserFuncT,
@@ -90,16 +94,16 @@ class FunctionCache {
 		event_counter_.invokeUserFunc();
 		auto start = high_resolution_clock::now();
 		DEFERRED(
-				priority = priority_generator_.calculatePriority(
-						(uint64_t) duration_cast<microseconds>(
-								high_resolution_clock::now() - start
-						).count());
+			priority = priority_generator_.calculatePriority(
+				(uint64_t) duration_cast<microseconds>(
+						high_resolution_clock::now() - start
+				).count());
 		);
 		return std::experimental::apply(user_func_, args);
 	}
 
 	container_t container_;
-	ProportionPriorityGenerator<256> priority_generator_;
+	RatioPriorityGenerator<256> priority_generator_;
 	UserFuncT user_func_;
 	EventCounterT event_counter_;
 };
