@@ -36,7 +36,7 @@ class DummyContainer {
 		return true;
 	}
 
-	size_t elementSize() const {
+	static constexpr size_t elementSize() {
 		return sizeof(KeyT) + sizeof(ValueT);
 	}
 
