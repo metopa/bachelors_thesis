@@ -8,6 +8,7 @@
 #define NUMDB_FUNCTION_CACHE_H
 
 #include <chrono>
+#include <experimental/tuple>
 
 #include <murmurhash2/all.h>
 #include <function_traits/functional_unwrap.hpp>

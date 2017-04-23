@@ -11,7 +11,6 @@
 
 #include "fixed_hashtable_base.h"
 #include "numdb/utils.h"
-#include "numdb/fair_lru.h"
 
 template <typename KeyT, typename ValueT, typename LuStrategyT, typename HasherT>
 class FixedHashtableFairLeastUsed;

@@ -10,6 +10,13 @@
 #ifndef NUMDB_INITIAL_PRIORITY_GENERATOR_H
 #define NUMDB_INITIAL_PRIORITY_GENERATOR_H
 
+/**
+ * @brief
+ * @deprecated Use RationPriorityGenerator instead
+ * @tparam MaxPriority
+ * @tparam InitialLearningIterations
+ * @tparam IterationsUntilUpdate
+ */
 template <
 		uint64_t MaxPriority,
 		uint64_t InitialLearningIterations = 100,

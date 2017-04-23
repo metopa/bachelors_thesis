@@ -21,6 +21,7 @@
 //TODO Preallocate all nodes
 template <typename CrtpDerived>
 class FixedHashtableBase {
+	friend CrtpDerived;
   public:
 	using traits = CacheContainerTraits<CrtpDerived>;
 	using key_t = typename traits::key_t;
@@ -247,7 +248,6 @@ class FixedHashtableBase {
 	void nodeExtractedImpl(Node* node);
 	Node* getLuNodeImpl();
 
-  private:
 	std::vector<Node*> buckets_;
 	const size_t max_count_;
 	const double load_factor_;

@@ -15,7 +15,10 @@ class FairLRU {
 
 	  protected:
 		/**
-		 * @remark Destructor is declared protected so only derived node can be deleted. With this limitation, dtor may not be declared virtual. This way we eliminate a vtable cost.
+		 * @remark Destructor is declared protected
+		 * so only derived node can be deleted.
+		 * With this limitation, dtor may not be declared virtual.
+		 * This way we eliminate a vtable cost.
 		*/
 		~Node() = default;
 
