@@ -72,7 +72,9 @@ class FixedHashtableBase {
 
 	static constexpr size_t elementSize(double load_factor) {
 		return static_cast<size_t>(
-				sizeof(Node) + std::ceil(sizeof(Node*) / load_factor));
+				sizeof(Node) +
+				std::ceil(sizeof(Node*) / load_factor) +
+				additionalNodeOverhead());
 	}
 
 	FixedHashtableBase(size_t available_memory, double load_factor) :
@@ -149,7 +151,7 @@ class FixedHashtableBase {
 			new_node = new Node(std::move(key), std::move(value));
 
 		new_node->insertBefore(root_node);
-		nodeInserted(new_node);
+		nodeInserted(new_node, priority);
 
 		return true;
 	}
@@ -207,10 +209,10 @@ class FixedHashtableBase {
 		static_cast<CrtpDerived*>(this)->nodeAccessedImpl(node);
 	}
 
-	void nodeInserted(Node* node) {
+	void nodeInserted(Node* node, size_t priority) {
 		count_++;
 		assert(count_ <= max_count_);
-		static_cast<CrtpDerived*>(this)->nodeInsertedImpl(node);
+		static_cast<CrtpDerived*>(this)->nodeInsertedImpl(node, priority);
 	}
 
 	void nodeExtracted(Node* node) {
@@ -240,13 +242,18 @@ class FixedHashtableBase {
 		return nullptr;
 	}
 
+	size_t additionalNodeOverhead() {
+		return CrtpDerived::additionalNodeOverheadImpl();
+	}
+
   protected:
 	///Following methods would be implemented in derived classes.
 	///They are called through Curiously Recurring Template Pattern
-	void nodeAccessedImpl(Node* node);
-	void nodeInsertedImpl(Node* node);
-	void nodeExtractedImpl(Node* node);
-	Node* getLuNodeImpl();
+	size_t additionalNodeOverheadImpl() = delete;
+	void nodeAccessedImpl(Node* node) = delete;
+	void nodeInsertedImpl(Node* node, size_t priority) = delete;
+	void nodeExtractedImpl(Node* node) = delete;
+	Node* getLuNodeImpl() = delete;
 
 	std::vector<Node*> buckets_;
 	const size_t max_count_;

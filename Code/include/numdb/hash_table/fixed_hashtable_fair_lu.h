@@ -1,11 +1,11 @@
-/** @file fixed_hashtable_fair_lru.h
+/** @file fixed_hashtable_fair_lu.h
  *  @brief
  *
  *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
-#ifndef NUMDB_FIXED_HASHTABLE_FAIR_LRU_H
-#define NUMDB_FIXED_HASHTABLE_FAIR_LRU_H
+#ifndef NUMDB_FIXED_HASHTABLE_FAIR_LU_H
+#define NUMDB_FIXED_HASHTABLE_FAIR_LU_H
 
 #include "murmurhash2/all.h"
 
@@ -46,23 +46,27 @@ class FixedHashtableFairLeastUsed :
 
   protected:
 	void nodeAccessedImpl(node_t* node) {
-		lu_manager_.markRecentlyUsed(node);
+		lu_strategy_.markRecentlyUsed(node);
 	}
 
-	void nodeInsertedImpl(node_t* node) {
-		lu_manager_.insertNode(node);
+	void nodeInsertedImpl(node_t* node, size_t priority) {
+		lu_strategy_.insertNode(node);
 	}
 
 	void nodeExtractedImpl(node_t* node) {
-		lu_manager_.extractNode(node);
+		lu_strategy_.extractNode(node);
 	}
 
 	node_t* getLuNodeImpl() {
-		return static_cast<node_t*>(lu_manager_.extractLuNode());
+		return static_cast<node_t*>(lu_strategy_.extractLuNode());
+	}
+
+	static size_t additionalNodeOverheadImpl() {
+		return 0;
 	}
 
   private:
-	LuStrategyT lu_manager_;
+	LuStrategyT lu_strategy_;
 };
 
-#endif //NUMDB_FIXED_HASHTABLE_FAIR_LRU_H
+#endif //NUMDB_FIXED_HASHTABLE_FAIR_LU_H

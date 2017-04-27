@@ -447,11 +447,11 @@ class SplayTreeBase {
   protected:
 	///Following methods would be implemented in derived classes.
 	///They are called through Curiously Recurring Template Pattern
-	void nodeAccessedImpl(Node* node);
-	void nodeVisitedImpl(Node* node);
-	void nodeInsertedImpl(Node* node);
-	void nodeExtractedImpl(Node* node);
-	Node** getLuNodeRefImpl(const key_t& key);
+	void nodeAccessedImpl(Node* node) = delete;
+	void nodeVisitedImpl(Node* node) = delete;
+	void nodeInsertedImpl(Node* node) = delete;
+	void nodeExtractedImpl(Node* node) = delete;
+	Node** getLuNodeRefImpl(const key_t& key) = delete;
 
 	Node* root_;
 	size_t node_count_;
