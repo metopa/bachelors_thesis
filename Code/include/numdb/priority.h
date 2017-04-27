@@ -58,7 +58,7 @@ static_assert(sizeof(WstAvlPriority) == 4, "Invalid wst priority size");
 
 class WstPriority {
   public:
-	WstPriority(unsigned int priority) :
+	WstPriority(unsigned int priority = 0) :
 			priority_(std::max<unsigned>(priority, 1)) {}
 
 	void visit(int degradation_rate) {
