@@ -16,9 +16,9 @@
 #include <numdb/priority.h>
 
 
-template <typename KeyT, typename ValueT, typename ComparatorT, int DegradationRate>
+template <typename KeyT, typename ValueT, typename ComparatorT, int DegradationRate, bool UseShortIndex>
 class WeightedSearchTree {
-	using idx_t = std::size_t;
+	using idx_t = typename std::conditional<UseShortIndex, uint32_t, size_t>::type;
 	using key_t = KeyT;
 	using value_t = ValueT;
 	using priority_t = WstAvlPriority;
@@ -63,6 +63,10 @@ class WeightedSearchTree {
 	WeightedSearchTree(size_t available_memory, comparator_t comparator = {}) :
 			max_node_count_(maxElemCountForCapacity(available_memory)),
 			node_count_(0), root_idx_(null), comparator_(std::move(comparator)) {
+		if (UseShortIndex && max_node_count_ > std::numeric_limits<idx_t>::max() - 1)
+			throw std::length_error(
+					"Capacity (64-bit) exceeded max index value (32-bit). Disable short index optimization (UseShortIndex template param)");
+
 		data_.reserve(max_node_count_);
 	}
 
@@ -99,12 +103,12 @@ class WeightedSearchTree {
 	bool insert(key_t key, value_t value, size_t priority) {
 		idx_t node;
 		if (node_count_ == max_node_count_) {
-			node = heapRemove();
+			node = heapRemove(0);
 			treeRemove(node);
 			assert(checkInvariants());
 			_(node) = Node(std::move(key), std::move(value), priority);
 		} else {
-			node = data_.size();
+			node = (idx_t) data_.size();
 			data_.push_back(Node(std::move(key), std::move(value), priority));
 		}
 		_(node).priority.access();
@@ -518,7 +522,7 @@ class WeightedSearchTree {
 		std::swap(_(a), _(b));
 	}
 
-	idx_t heapRemove(idx_t node = 0) {
+	idx_t heapRemove(idx_t node) {
 		if (node != node_count_ - 1) {
 			swapNodes(node, node_count_ - 1);
 			node_count_--;
@@ -582,10 +586,10 @@ class WeightedSearchTree {
 	comparator_t comparator_;
 };
 
-template <int DegradationRate, typename ComparatorT = std::less<>>
+template <int DegradationRate, typename ComparatorT = std::less<>, bool UseShortIndex = true>
 struct WeightedSearchTreeTypeHolder {
 	template <typename KeyT, typename ValueT>
-	using container_t = WeightedSearchTree<KeyT, ValueT, ComparatorT, DegradationRate>;
+	using container_t = WeightedSearchTree<KeyT, ValueT, ComparatorT, DegradationRate, UseShortIndex>;
 };
 
 #endif //NUMDB_WEIGHTED_SEARCH_TREE_H
