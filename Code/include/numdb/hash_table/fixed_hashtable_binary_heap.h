@@ -25,7 +25,7 @@ struct CacheContainerTraits<FixedHashtableBinaryHeap
 	using key_t = KeyT;
 	using value_t = ValueT;
 	using hasher_t = HasherT;
-	using idx_t = typename std::conditional<UseShortIndex, uint32_t, size_t>::type;
+	using idx_t = std::conditional_t<UseShortIndex, uint32_t, size_t>;
 
 	struct NodeBase {
 		idx_t heap_idx = 0;

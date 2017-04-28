@@ -18,7 +18,7 @@
 
 template <typename KeyT, typename ValueT, typename ComparatorT, int DegradationRate, bool UseShortIndex>
 class WeightedSearchTree {
-	using idx_t = typename std::conditional<UseShortIndex, uint32_t, size_t>::type;
+	using idx_t = std::conditional_t<UseShortIndex, uint32_t, size_t>;
 	using key_t = KeyT;
 	using value_t = ValueT;
 	using priority_t = WstAvlPriority;
