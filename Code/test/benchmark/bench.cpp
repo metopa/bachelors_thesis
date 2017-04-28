@@ -40,8 +40,8 @@ void BM(benchmark::State& state) {
 	double area = state.range(3);
 	area /= 100;
 
-	double mean_speed = state.range(4) == 0 ? 0 : 1. / state.range(4);
-	double mean_delta = 0;
+	double mean_delta = state.range(4) == 0 ? 0 : 1. / state.range(4);
+	double mean_offset = 0;
 
 	double sigma = computeSigma(area, max_element_capacity);
 	std::random_device r;
@@ -52,33 +52,39 @@ void BM(benchmark::State& state) {
 			cache(UserFunc(state.range(0), state.range(1)), mem);
 
 	while (state.KeepRunning()) {
-		double a = std::round(dist(e) + mean_delta);
+		double a = std::round(dist(e) + mean_offset);
 		benchmark::DoNotOptimize(cache(a));
-		mean_delta += mean_speed;
+		mean_offset += mean_delta;
 	}
 
 	state.SetItemsProcessed(state.iterations());
 	state.counters["cap"] = cache.capacity();
 	state.counters["hr"] = computeHitRate(cache.eventCounter().total_retrievals,
-												cache.eventCounter().user_func_invocations, area);
+										  cache.eventCounter().user_func_invocations, area);
 }
 
-constexpr int max_arg = 29;
-constexpr int min_arg = 33;
+constexpr int max_arg = 33;
+constexpr int min_arg = 29;
 
-#define BENCH_ARGS Args({min_arg, max_arg, 10, 95, 0})//->Args({min_arg, max_arg, 10, 95, 1})->Args({min_arg, max_arg, 1000, 95, 1})->Args({min_arg, max_arg, 1000, 55, 1})
+#define BENCH_ARGS Args({min_arg, max_arg, 10, 90, 0})->Args({min_arg, max_arg, 10, 90, 10})//->Args({min_arg, max_arg, 1000, 95, 1})->Args({min_arg, max_arg, 1000, 55, 1})
 
-BENCHMARK_TEMPLATE(BM, FixedHashtableBinaryHeapTypeHolder<>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, FixedHashtableFairLeastUsedTypeHolder<FairLRU>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, FixedHashtableFairLeastUsedTypeHolder<FairLFU>)->BENCH_ARGS;
+
+BENCHMARK_TEMPLATE(BM, FixedHashtableBinaryHeapTypeHolder<0>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, FixedHashtableBinaryHeapTypeHolder<1>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, FixedHashtableBinaryHeapTypeHolder<16>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<CanonicalSplayStrategy>)->BENCH_ARGS;
 
 BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<0>)->BENCH_ARGS;
 BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<1>)->BENCH_ARGS;
+BENCHMARK_TEMPLATE(BM, WeightedSearchTreeTypeHolder<2>)->BENCH_ARGS;
+//BENCHMARK_TEMPLATE(BM, FixedHashtableFairLeastUsedTypeHolder<FairLRU>)->BENCH_ARGS;
+//BENCHMARK_TEMPLATE(BM, FixedHashtableFairLeastUsedTypeHolder<FairLFU>)->BENCH_ARGS;
 
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLFU, CanonicalSplayStrategy>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLRU, CanonicalSplayStrategy>)->BENCH_ARGS;
+//BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLFU, CanonicalSplayStrategy>)->BENCH_ARGS;
+//BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLRU, CanonicalSplayStrategy>)->BENCH_ARGS;
+
+
 //BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<FairLRU, AccessCountSplayStrategy>)->BENCH_ARGS;
-BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<CanonicalSplayStrategy>)->BENCH_ARGS;
 //BENCHMARK_TEMPLATE(BM, SplayTreeBottomNodeTypeHolder<AccessCountSplayStrategy>)->BENCH_ARGS;
 
 //BENCHMARK_TEMPLATE(BM, SplayTreeFairLeastUsedTypeHolder<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->BENCH_ARGS;
