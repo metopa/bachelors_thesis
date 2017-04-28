@@ -24,7 +24,7 @@ template <typename KeyT, typename ValueT, typename ContainerTypeHolderT>
 class CoarseLockConcurrentAdapter {
   public:
 	using inner_container_t = typename ContainerTypeHolderT::template container_t<KeyT, ValueT>;
-
+	using lock_guard_t = std::lock_guard<std::mutex>;
 	template <typename... Args>
 	CoarseLockConcurrentAdapter(Args... container_args) :
 			inner_container(container_args) {}
@@ -46,18 +46,18 @@ class CoarseLockConcurrentAdapter {
 	}
 
 	std::experimental::optional<ValueT> find(const KeyT& key) {
-		std::lock_guard(lock_);
+		lock_guard_t lg(mutex_);
 		return inner_container.find(key);
 	}
 
 	void insert(const KeyT& key, const ValueT& value, size_t priority) {
-		std::lock_guard(lock_);
+		lock_guard_t lg(mutex_);
 		return inner_container.insert(key, value, priority);
 	}
 
   private:
 	inner_container_t inner_container;
-	std::mutex lock_;
+	std::mutex mutex_;
 };
 
 #endif //NUMDB_COARSE_LOCK_CONCURRENT_ADAPTER_H
