@@ -440,6 +440,7 @@ class SplayTreeBase {
 		assert(node_count_ > 0);
 		Node** candidate = static_cast<CrtpDerived*>(this)->getLuNodeRefImpl(key);
 		assert(candidate != nullptr);
+		assert(*candidate != nullptr);
 		node_count_--;
 		return extractNodeImpl(*candidate);
 	}

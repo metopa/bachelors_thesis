@@ -56,14 +56,16 @@ class SplayTreeBottomNode : public SplayTreeBase<
 
 	node_t** getLuNodeRefImpl(const typename base_t::key_t& key) {
 		uint64_t hash = mmh2::getMurmurHash2(key);
-		node_t** node = &this->root_;
-		while (*node) {
+		node_t** node = nullptr;
+		node_t** next = &this->root_;
+		do {
+			node = next;
 			if ((*node)->left_ && (hash & 1 || !(*node)->right_))
-				node = &((*node)->left_);
+				next = &((*node)->left_);
 			else
-				node = &((*node)->right_);
+				next = &((*node)->right_);
 			hash >>= 1;
-		}
+		} while (*next);
 		return node;
 	}
 };
