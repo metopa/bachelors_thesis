@@ -13,11 +13,15 @@
 #include "fixed_hashtable_base.h"
 #include "numdb/utils.h"
 
-template <typename KeyT, typename ValueT, typename PriorityT, typename HasherT, bool UseShortIndex>
+template <typename KeyT, typename ValueT, typename PriorityT,
+		int DegradationRate, typename HasherT, bool UseShortIndex>
 class FixedHashtableBinaryHeap;
 
-template <typename KeyT, typename ValueT, typename PriorityT, typename HasherT, bool UseShortIndex>
-struct CacheContainerTraits<FixedHashtableBinaryHeap<KeyT, ValueT, PriorityT, HasherT, UseShortIndex>> {
+template <typename KeyT, typename ValueT, typename PriorityT,
+		int DegradationRate, typename HasherT, bool UseShortIndex>
+struct CacheContainerTraits<FixedHashtableBinaryHeap
+		<KeyT, ValueT, PriorityT,
+				DegradationRate, HasherT, UseShortIndex>> {
 	using key_t = KeyT;
 	using value_t = ValueT;
 	using hasher_t = HasherT;
@@ -30,28 +34,29 @@ struct CacheContainerTraits<FixedHashtableBinaryHeap<KeyT, ValueT, PriorityT, Ha
 	using node_base_t = NodeBase;
 };
 
-template <typename PriorityT = WstPriority, typename HasherT = mmh2::MurmurHash2<void>, bool UseShortIndex = true>
+template <int DegradationRate, typename PriorityT = WstPriority, typename HasherT = mmh2::MurmurHash2<void>, bool UseShortIndex = true>
 struct FixedHashtableBinaryHeapTypeHolder {
 	template <typename KeyT, typename ValueT>
-	using container_t = FixedHashtableBinaryHeap<KeyT, ValueT, PriorityT, HasherT, UseShortIndex>;
+	using container_t = FixedHashtableBinaryHeap<KeyT, ValueT, PriorityT, DegradationRate, HasherT, UseShortIndex>;
 };
 
-template <typename KeyT, typename ValueT, typename PriorityT, typename HasherT, bool UseShortIndex>
+template <typename KeyT, typename ValueT, typename PriorityT, int DegradationRate, typename HasherT, bool UseShortIndex>
 class FixedHashtableBinaryHeap : public FixedHashtableBase<
-		FixedHashtableBinaryHeap<KeyT, ValueT, PriorityT, HasherT, UseShortIndex>> {
+		FixedHashtableBinaryHeap<KeyT, ValueT, PriorityT, DegradationRate, HasherT, UseShortIndex>> {
 
   public:
 	using base_t = FixedHashtableBase<
-			FixedHashtableBinaryHeap<KeyT, ValueT, PriorityT, HasherT, UseShortIndex>>;
+			FixedHashtableBinaryHeap<KeyT, ValueT, PriorityT, DegradationRate, HasherT, UseShortIndex>>;
 	using node_t = typename base_t::Node;
-	using traits_t = CacheContainerTraits<FixedHashtableBinaryHeap<KeyT, ValueT, PriorityT, HasherT, UseShortIndex>>;
+	using traits_t = CacheContainerTraits<FixedHashtableBinaryHeap<KeyT, ValueT, PriorityT, DegradationRate, HasherT, UseShortIndex>>;
 	using idx_t = typename traits_t::idx_t;
 	friend base_t;
 
 	FixedHashtableBinaryHeap(size_t available_memory, double load_factor = 2) :
 			base_t(available_memory, load_factor), heap_node_count_(0) {
 		if (UseShortIndex && this->capacity() > std::numeric_limits<idx_t>::max() - 1)
-			throw std::length_error("Capacity (64-bit) exceeded max index value (32-bit). Disable short index optimization (UseShortIndex template param)");
+			throw std::length_error(
+					"Capacity (64-bit) exceeded max index value (32-bit). Disable short index optimization (UseShortIndex template param)");
 		heap_nodes_.resize(this->capacity());
 	}
 
@@ -66,7 +71,7 @@ class FixedHashtableBinaryHeap : public FixedHashtableBase<
 		idx_t heap_idx = node->heap_idx;
 		assert(heap_idx < heap_node_count_);
 		_(heap_idx).priority.access();
-		bottomUpHeapify(heap_idx);
+		topDownHeapify(heap_idx);
 	}
 
 	void nodeInsertedImpl(node_t* node, size_t priority) {
@@ -130,6 +135,10 @@ class FixedHashtableBinaryHeap : public FixedHashtableBase<
 			max = right;
 		if (_(max).priority < _(idx).priority) {
 			swapNodes(idx, max);
+			if (DegradationRate > 0) {
+				_(idx).priority.visit(DegradationRate);
+				bottomUpHeapify(idx);
+			}
 			return topDownHeapify(max);
 		} else
 			return idx;
