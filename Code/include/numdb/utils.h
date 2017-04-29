@@ -90,4 +90,29 @@ class FlaggedPointer {
 
 };
 
+class ExpBackoff {
+	int const initial_;
+	int const step_;
+	int const threshold_;
+	int current_;
+  public:
+	ExpBackoff(int init = 10, int step = 2, int threshold = 8000)
+			: initial_(init), step_(step), threshold_(threshold), current_(init) {}
+	void operator ()() {
+		for (int k = 0; k < current_; ++k)
+			nop();
+
+		current_ *= step_;
+		if (current_ > threshold_)
+			current_ = threshold_;
+	}
+
+	void nop() {
+		__asm__ __volatile__("");
+	}
+
+	void reset() { current_ = initial_; }
+};
+
+
 #endif //NUMDB_BENCHMARK_UTILS_H
