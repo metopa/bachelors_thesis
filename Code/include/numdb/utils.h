@@ -48,5 +48,46 @@ decltype(auto) defer_call(F&& f) {
 #define TOKENPASTE2_HELPER(x, y) TOKENPASTE_HELPER(x, y)
 #define DEFERRED(FUNC) auto TOKENPASTE2_HELPER(_deferred_, __LINE__) = defer_call([&]() {FUNC;});
 
+template <typename T>
+class FlaggedPointer {
+	union {
+		T* ptr_;
+		uintptr_t val_;
+	};
+  public:
+	FlaggedPointer(T* ptr = nullptr, bool flag = false) {
+		ptr_ = ptr;
+		setFlag(flag);
+	}
+
+	FlaggedPointer& operator=(T* ptr) {
+		bool current_flag = flag();
+		ptr_ = ptr;
+		setFlag(current_flag);
+		return *this;
+	}
+
+	void setFlag(bool flag) {
+		val_ &= ~(uintptr_t) 1;
+		val_ |= flag;
+	}
+	bool flag() const {
+		return (bool) (val_ & 1);
+	}
+
+	T& operator *() {
+		return ptr_;
+	}
+	const T& operator *() const {
+		return ptr_;
+	}
+	T* operator ->() {
+		return ptr_;
+	}
+	T* operator ->() const {
+		return ptr_;
+	}
+
+};
 
 #endif //NUMDB_BENCHMARK_UTILS_H
