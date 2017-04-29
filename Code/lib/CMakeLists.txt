@@ -7,7 +7,7 @@ include_directories(../include)
 include_directories(../3rdparty/function_traits/include)
 include_directories(../3rdparty/murmurhash2functor/include)
 
-add_library(numdb fair_lru.cpp)
+add_library(numdb fair_lru.cpp fair_lfu.cpp)
 target_link_libraries(numdb murmurhash2)
 
 
