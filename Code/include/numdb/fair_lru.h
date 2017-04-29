@@ -7,41 +7,45 @@
 #ifndef NUMDB_FAIR_LRU_H
 #define NUMDB_FAIR_LRU_H
 
-class FairLRU {
-  public:
-	struct Node {
-		friend class FairLRU;
-		Node() : next(nullptr), prev(nullptr) {}
+namespace numdb {
+	namespace utility {
+		class FairLRU {
+		  public:
+			struct Node {
+				friend class FairLRU;
 
-	  protected:
-		/**
-		 * @remark Destructor is declared protected
-		 * so only derived node can be deleted.
-		 * With this limitation, dtor may not be declared virtual.
-		 * This way we eliminate a vtable cost.
-		*/
-		~Node() = default;
+				Node() : next(nullptr), prev(nullptr) {}
 
-	  private:
-		Node* extract();
-		void insertAfter(Node* node);
+			  protected:
+				/**
+				 * @remark Destructor is declared protected
+				 * so only derived node can be deleted.
+				 * With this limitation, dtor may not be declared virtual.
+				 * This way we eliminate a vtable cost.
+				*/
+				~Node() = default;
 
-		Node* next;
-		Node* prev;
-	};
+			  private:
+				Node* extract();
+				void insertAfter(Node* node);
 
-	FairLRU();
-	FairLRU(const FairLRU&) = delete;
-	FairLRU& operator =(const FairLRU&) = delete;
+				Node* next;
+				Node* prev;
+			};
 
-	Node* extractLuNode();
-	void markRecentlyUsed(Node* node);
-	void insertNode(Node* node);
-	void extractNode(Node* node);
+			FairLRU();
+			FairLRU(const FairLRU&) = delete;
+			FairLRU& operator =(const FairLRU&) = delete;
 
-  private:
-	Node head_;
-	Node tail_;
-};
+			Node* extractLuNode();
+			void markRecentlyUsed(Node* node);
+			void insertNode(Node* node);
+			void extractNode(Node* node);
 
+		  private:
+			Node head_;
+			Node tail_;
+		};
+	}
+}
 #endif //NUMDB_FAIR_LRU_H
