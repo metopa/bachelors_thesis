@@ -15,7 +15,7 @@ template <typename KeyT, typename ValueT, typename ContainerTypeHolderT>
 class CoarseLockConcurrentAdapter;
 
 template <typename ContainerTypeHolderT>
-struct CoarseLockConcurrentAdapter {
+struct CoarseLockConcurrentAdapterTypeHolder {
 	template <typename KeyT, typename ValueT>
 	using container_t = CoarseLockConcurrentAdapter<KeyT, ValueT, ContainerTypeHolderT>;
 };
@@ -27,7 +27,7 @@ class CoarseLockConcurrentAdapter {
 	using lock_guard_t = std::lock_guard<std::mutex>;
 	template <typename... Args>
 	CoarseLockConcurrentAdapter(Args... container_args) :
-			inner_container(container_args) {}
+			inner_container(container_args...) {}
 
 	size_t capacity() const {
 		return inner_container.capacity();
@@ -52,7 +52,7 @@ class CoarseLockConcurrentAdapter {
 
 	void insert(const KeyT& key, const ValueT& value, size_t priority) {
 		lock_guard_t lg(mutex_);
-		return inner_container.insert(key, value, priority);
+		inner_container.insert(key, value, priority);
 	}
 
   private:
