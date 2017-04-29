@@ -14,6 +14,7 @@
 #include <random>
 
 #include <murmurhash2/all.h>
+#include <memory>
 
 template <typename KeyT, typename ValueT, typename ContainerTypeHolderT>
 class BinningConcurrentAdapter;
@@ -31,20 +32,19 @@ class BinningConcurrentAdapter {
 	using lock_guard_t = std::lock_guard<std::mutex>;
 
 	template <typename... Args>
-	BinningConcurrentAdapter(size_t available_memory,
-							size_t bins_count,
-							Args... container_args) {
+	BinningConcurrentAdapter(size_t available_memory, size_t bins_count = 4,
+							 Args... container_args) :
+			locks_(bins_count) {
 		if (bins_count == 0)
 			throw std::invalid_argument("Binning container adapter: invalid bin count");
 		hash_seed_ = std::random_device()();
 		bins_.reserve(bins_count);
 		for (size_t i = 0; i < bins_count; i++)
-			bins_.emplace_back(available_memory / bins_count, container_args...);
-		mutexes_.resize(bins_count);
+			bins_.emplace_back(new inner_container_t(available_memory / bins_count, container_args...));
 	}
 
 	size_t capacity() const {
-		return bins_[0].capacity() * bins_.size();
+		return bins_[0]->capacity() * bins_.size();
 	}
 
 	size_t size() const {
@@ -64,14 +64,14 @@ class BinningConcurrentAdapter {
 
 	std::experimental::optional<ValueT> find(const KeyT& key) {
 		size_t bin = getBin(key);
-		lock_guard_t lock((mutexes_[bin]));
-		return bins_[bin].find(key);
+		lock_guard_t lock((locks_[bin]));
+		return bins_[bin]->find(key);
 	}
 
-	void insert(const KeyT& key, const ValueT& value, size_t priority) {
+	void insert(KeyT key, ValueT value, size_t priority) {
 		size_t bin = getBin(key);
-		lock_guard_t lock((mutexes_[bin]));
-		return bins_[bin].insert(key, value, priority);
+		lock_guard_t lock((locks_[bin]));
+		bins_[bin]->insert(std::move(key), std::move(value), priority);
 	}
 
   private:
@@ -81,8 +81,8 @@ class BinningConcurrentAdapter {
 
 	size_t hash_seed_;
 
-	std::vector<inner_container_t> bins_;
-	std::vector<std::mutex> mutexes_;
+	std::vector<std::unique_ptr<inner_container_t>> bins_;
+	std::vector<std::mutex> locks_;
 };
 
 #endif //NUMDB_BINNING_CONCURRENT_ADAPTER_H
