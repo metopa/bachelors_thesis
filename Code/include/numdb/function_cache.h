@@ -33,12 +33,12 @@ class FunctionCache {
 			std::declval<args_tuple_t>()));
 	using event_counter_t = EventCounterT;
 	using container_t = typename ContainerTypeHolder::template
-		container_t<args_tuple_t, return_t>;
+	container_t<args_tuple_t, return_t>;
 
 
 	template <typename... ContainerArgs>
 	FunctionCache(UserFuncT user_func, size_t available_memory,
-				  ContainerArgs&& ... container_args) :
+				  ContainerArgs&&... container_args) :
 			user_func_(std::move(user_func)),
 			container_(available_memory,
 					   std::forward<ContainerArgs>(container_args)...) {}
@@ -95,10 +95,10 @@ class FunctionCache {
 		event_counter_.invokeUserFunc();
 		auto start = high_resolution_clock::now();
 		DEFERRED(
-			priority = priority_generator_.calculatePriority(
-				(uint64_t) duration_cast<microseconds>(
-						high_resolution_clock::now() - start
-				).count());
+				priority = priority_generator_.calculatePriority(
+						(uint64_t) duration_cast<microseconds>(
+								high_resolution_clock::now() - start
+						).count());
 		);
 		return std::experimental::apply(user_func_, args);
 	}
