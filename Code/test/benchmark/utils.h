@@ -52,4 +52,12 @@ struct Fibonacci {
 	};
 };
 
+
+double computeHitRate(size_t total_retrievals,
+					  size_t user_func_calls,
+					  double area_under_curve) {
+	return (total_retrievals - user_func_calls) /
+		   (double) total_retrievals * 100;
+}
+
 #endif //NUMDB_UTIL_H
