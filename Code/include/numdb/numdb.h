@@ -64,7 +64,7 @@ namespace numdb {
 
 	//TODO Add default value for Degradation Rate
 	template <int DegradationRate, bool UseShortIndex = true, typename ComparatorT = std::less<>>
-	using WeighterSearchTree = containers::WeightedSearchTreeTypeHolder<DegradationRate, UseShortIndex, ComparatorT>;
+	using WeightedSearchTree = containers::WeightedSearchTreeTypeHolder<DegradationRate, UseShortIndex, ComparatorT>;
 }
 
 #endif //NUMDB_NUMDB_H
