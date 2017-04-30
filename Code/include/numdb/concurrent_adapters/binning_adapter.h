@@ -18,23 +18,23 @@
 
 namespace numdb {
 	namespace containers {
-		template <typename KeyT, typename ValueT, typename ContainerTypeHolderT>
+		template <typename KeyT, typename ValueT, typename ContainerTypeHolderT, size_t ThreadCount>
 		class BinningConcurrentAdapter;
 
-		template <typename ContainerTypeHolderT>
+		template <typename ContainerTypeHolderT, size_t ThreadCount>
 		struct BinningConcurrentAdapterTypeHolder {
 			template <typename KeyT, typename ValueT>
-			using container_t = BinningConcurrentAdapter<KeyT, ValueT, ContainerTypeHolderT>;
+			using container_t = BinningConcurrentAdapter<KeyT, ValueT, ContainerTypeHolderT, ThreadCount>;
 		};
 
-		template <typename KeyT, typename ValueT, typename ContainerTypeHolderT>
+		template <typename KeyT, typename ValueT, typename ContainerTypeHolderT, size_t ThreadCount>
 		class BinningConcurrentAdapter {
 		  public:
 			using inner_container_t = typename ContainerTypeHolderT::template container_t<KeyT, ValueT>;
 			using lock_guard_t = std::lock_guard<std::mutex>;
 
 			template <typename... Args>
-			BinningConcurrentAdapter(size_t available_memory, size_t bins_count = 4,
+			BinningConcurrentAdapter(size_t available_memory, size_t bins_count = ThreadCount,
 									 Args... container_args) :
 					locks_(bins_count) {
 				if (bins_count == 0)

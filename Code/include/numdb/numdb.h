@@ -30,8 +30,8 @@
 #include "fair_lfu.h"
 
 namespace numdb {
-	template <typename ContainerTypeHolderT>
-	using BinningConcurrentAdapter = containers::BinningConcurrentAdapterTypeHolder<ContainerTypeHolderT>;
+	template <typename ContainerTypeHolderT, size_t ThreadCount>
+	using BinningConcurrentAdapter = containers::BinningConcurrentAdapterTypeHolder<ContainerTypeHolderT, ThreadCount>;
 
 	template <typename ContainerTypeHolderT>
 	using CoarseLockAdapter = containers::CoarseLockConcurrentAdapterTypeHolder<ContainerTypeHolderT>;
