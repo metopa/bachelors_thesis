@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <ostream>
+#include <atomic>
 
 namespace numdb {
 	namespace utility {
@@ -18,8 +19,8 @@ namespace numdb {
 		};
 
 		struct BasicEventCounter {
-			uint64_t total_retrievals = 0;
-			uint64_t user_func_invocations = 0;
+			std::atomic<uint64_t> total_retrievals = {0};
+			std::atomic<uint64_t> user_func_invocations = {0};
 
 			void retrieve() {
 				total_retrievals++;
