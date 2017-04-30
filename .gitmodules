@@ -1,3 +1,6 @@
 [submodule "Code/3rdparty/murmurhash2functor"]
 	path = Code/3rdparty/murmurhash2functor
 	url = https://github.com/metopa/murmurhash2functor.git
+[submodule "Code/3rdparty/google_benchmark"]
+	path = Code/3rdparty/google_benchmark
+	url = https://github.com/metopa/benchmark.git
