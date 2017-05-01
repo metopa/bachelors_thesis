@@ -47,4 +47,4 @@ cmake-*/
 .idea/
 
 ### Other
-test/playground.cpp
+playground.cpp
