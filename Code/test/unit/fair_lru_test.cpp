@@ -8,6 +8,8 @@
 #include <gtest/gtest.h>
 #include "numdb/fair_lru.h"
 
+using namespace numdb::utility;
+
 struct Node : public FairLRU::Node {};
 
 TEST(FairLRU, node_insertion_extraction) {

@@ -243,7 +243,7 @@ namespace numdb {
 				return nullptr;
 			}
 
-			size_t additionalNodeOverhead() {
+			static size_t additionalNodeOverhead() {
 				return CrtpDerived::additionalNodeOverheadImpl();
 			}
 
