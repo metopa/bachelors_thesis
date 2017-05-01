@@ -110,11 +110,11 @@ void ParallelBM(benchmark::State& state) {
 }
 
 constexpr int maxKB = 100 * 1024;
-constexpr int maxThreads = 4;
+constexpr int maxThreads = 24;
 
 void shortSequence(benchmark::internal::Benchmark* b) {
 	constexpr int min_memory = 1;
-	constexpr int max_memory = PARALLEL_ONLY ? 1024 : 256;
+	constexpr int max_memory = PARALLEL_ONLY ? 256 : 256;
 	constexpr int mem_multiply = 4;
 
 	std::vector<int> areas = {85};
@@ -190,19 +190,20 @@ BENCHMARK_TEMPLATE(BM, LfuSplayTree<ParametrizedAccessCountSplayStrategy<16, 1, 
 
 #endif
 
-BENCHMARK_TEMPLATE(ParallelBM, ConcurrentPriorityHashtable<false>)
-->ThreadRange(1, maxThreads)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(ParallelBM, ConcurrentPriorityHashtable<true>)
-->ThreadRange(1, maxThreads)->Apply(shortSequence);
-
 BENCHMARK_TEMPLATE(ParallelBM, CoarseLockAdapter<WeightedSearchTree<0>>)
 ->ThreadRange(1, maxThreads)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(ParallelBM, CoarseLockAdapter<BottomNodeSplayTree<CanonicalSplayStrategy>>)
 ->ThreadRange(1, maxThreads)->Apply(shortSequence);
 
-BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<WeightedSearchTree<0>, 8>)
+BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<WeightedSearchTree<0>, maxThreads>)
 ->ThreadRange(1, maxThreads)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<BottomNodeSplayTree<CanonicalSplayStrategy>, 8>)
+BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<BottomNodeSplayTree<CanonicalSplayStrategy>, maxThreads>)
+->ThreadRange(1, maxThreads)->Apply(shortSequence);
+
+
+BENCHMARK_TEMPLATE(ParallelBM, ConcurrentPriorityHashtable<false>)
+->ThreadRange(1, maxThreads)->Apply(shortSequence);
+BENCHMARK_TEMPLATE(ParallelBM, ConcurrentPriorityHashtable<true>)
 ->ThreadRange(1, maxThreads)->Apply(shortSequence);
 
 BENCHMARK_MAIN();
