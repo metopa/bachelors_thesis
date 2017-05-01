@@ -11,9 +11,7 @@
 
 #include "numdb/numdb.h"
 
-#ifndef SHORT_BENCHMARK
-#define SHORT_BENCHMARK 0
-#endif
+#define PARALLEL_ONLY 1
 
 using namespace numdb;
 using containers::CanonicalSplayStrategy;
@@ -116,7 +114,7 @@ constexpr int maxThreads = 4;
 
 void shortSequence(benchmark::internal::Benchmark* b) {
 	constexpr int min_memory = 1;
-	constexpr int max_memory = 256;
+	constexpr int max_memory = PARALLEL_ONLY ? 1024 : 256;
 	constexpr int mem_multiply = 4;
 
 	std::vector<int> areas = {85};
@@ -159,7 +157,7 @@ void longSequence(benchmark::internal::Benchmark* b) {
 
 BENCHMARK_TEMPLATE(BM, DummyContainer)->Iterations(2000)->Args({28, 35, 100, 50, 0});
 
-
+#if !PARALLEL_ONLY
 BENCHMARK_TEMPLATE(BM, WeightedSearchTree<0>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, WeightedSearchTree<1>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, WeightedSearchTree<2>)->Apply(shortSequence);
@@ -189,6 +187,8 @@ BENCHMARK_TEMPLATE(BM, LfuSplayTree<AccessCountSplayStrategy>)->Apply(shortSeque
 BENCHMARK_TEMPLATE(BM, LfuSplayTree<WstSplayStrategy<1>>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, LfuSplayTree<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, LfuSplayTree<ParametrizedAccessCountSplayStrategy<16, 1, 255>>)->Apply(shortSequence);
+
+#endif
 
 BENCHMARK_TEMPLATE(ParallelBM, ConcurrentPriorityHashtable<false>)
 ->ThreadRange(1, maxThreads)->Apply(shortSequence);
