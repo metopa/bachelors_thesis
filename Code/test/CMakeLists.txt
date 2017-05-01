@@ -4,9 +4,8 @@ project(NumDbTests)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
+add_subdirectory(../3rdparty/gtest gtest)
 enable_testing()
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
 
 option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." ON)
 option(BENCHMARK_ENABLE_EXCEPTIONS "Enable the use of exceptions in the benchmark library." ON)
@@ -17,6 +16,7 @@ option(BENCHMARK_BUILD_32_BITS "Build a 32 bit version of the library" OFF)
 
 add_subdirectory(../3rdparty/google_benchmark google_benchmark)
 
+include_directories(../3rdparty/gtest/googletest/include)
 include_directories(../include)
 include_directories(../3rdparty/function_traits/include)
 include_directories(../3rdparty/murmurhash2functor/include)
@@ -26,7 +26,7 @@ add_executable(unit_tests
         unit/fair_lru_test.cpp
         unit/fixed_hashtable_fair_lru_test.cpp
         unit/splay_tree_test.cpp)
-target_link_libraries(unit_tests numdb ${GTEST_BOTH_LIBRARIES} pthread)
+target_link_libraries(unit_tests numdb gtest gtest_main pthread)
 
 add_executable(bench benchmark/bench.cpp)
 target_link_libraries(bench numdb benchmark pthread)
