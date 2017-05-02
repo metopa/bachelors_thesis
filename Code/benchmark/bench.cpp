@@ -11,7 +11,7 @@
 
 #include "numdb/numdb.h"
 
-#define PARALLEL_ONLY 1
+#define PARALLEL_ONLY 0
 
 using namespace numdb;
 using containers::CanonicalSplayStrategy;
@@ -110,7 +110,7 @@ void ParallelBM(benchmark::State& state) {
 }
 
 constexpr int maxKB = 100 * 1024;
-constexpr int maxThreads = 24;
+constexpr int maxThreads = 2;
 
 void shortSequence(benchmark::internal::Benchmark* b) {
 	constexpr int min_memory = 1;
@@ -118,7 +118,7 @@ void shortSequence(benchmark::internal::Benchmark* b) {
 	constexpr int mem_multiply = 4;
 
 	std::vector<int> areas = {85};
-	std::vector<std::pair<int, int>> fib_args = {{28, 35}};
+	std::vector<std::pair<int, int>> fib_args = {{30, 35}};
 	std::vector<int> slide = {1};
 
 	b->ArgNames({"fib_min", "fib_max", "memory", "area", "mean_varying_rate"});
@@ -155,7 +155,7 @@ void longSequence(benchmark::internal::Benchmark* b) {
 				}
 }
 
-BENCHMARK_TEMPLATE(BM, DummyContainer)->Iterations(2000)->Args({28, 35, 100, 50, 0});
+BENCHMARK_TEMPLATE(BM, DummyContainer)->Iterations(2000)->Args({30, 35, 100, 50, 0});
 
 #if !PARALLEL_ONLY
 BENCHMARK_TEMPLATE(BM, WeightedSearchTree<0>)->Apply(shortSequence);
@@ -167,6 +167,7 @@ BENCHMARK_TEMPLATE(BM, WeightedSearchTree<16>)->Apply(shortSequence);
 
 BENCHMARK_TEMPLATE(BM, PriorityHashtable<0>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, PriorityHashtable<1>)->Apply(shortSequence);
+BENCHMARK_TEMPLATE(BM, PriorityHashtable<2>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, PriorityHashtable<4>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, PriorityHashtable<16>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, LruHashtable<>)->Apply(shortSequence);
@@ -179,14 +180,10 @@ BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<WstSplayStrategy<1>>)->Apply(shortSeq
 BENCHMARK_TEMPLATE(BM, LruSplayTree<CanonicalSplayStrategy>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, LruSplayTree<AccessCountSplayStrategy>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, LruSplayTree<WstSplayStrategy<1>>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, LruSplayTree<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, LruSplayTree<ParametrizedAccessCountSplayStrategy<16, 1, 255>>)->Apply(shortSequence);
 
 BENCHMARK_TEMPLATE(BM, LfuSplayTree<CanonicalSplayStrategy>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, LfuSplayTree<AccessCountSplayStrategy>)->Apply(shortSequence);
 BENCHMARK_TEMPLATE(BM, LfuSplayTree<WstSplayStrategy<1>>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, LfuSplayTree<ParametrizedAccessCountSplayStrategy<2, 1, 8>>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, LfuSplayTree<ParametrizedAccessCountSplayStrategy<16, 1, 255>>)->Apply(shortSequence);
 
 #endif
 
