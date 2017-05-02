@@ -51,7 +51,7 @@ namespace numdb {
 
 	template <bool UseBackoff = true, bool UseShortIndex = true,
 			typename PriorityT = utility::WstPriority, typename HasherT = mmh2::MurmurHash2<void>>
-	using ConcurrentPriorityHashtable = containers::ConcurrentHashtableTypeHolder<UseBackoff, UseShortIndex, PriorityT, HasherT>;
+	using CNDC = containers::CNDCTypeHolder<UseBackoff, UseShortIndex, PriorityT, HasherT>;
 
 	template <typename SplayStrategyT = containers::CanonicalSplayStrategy, typename ComparatorT = std::less<>>
 	using LruSplayTree = containers::SplayTreeFairLeastUsedTypeHolder<utility::FairLRU, SplayStrategyT, ComparatorT>;

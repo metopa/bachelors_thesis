@@ -26,7 +26,7 @@ namespace numdb {
 		template <typename KeyT, typename ValueT,
 				typename PriorityT, typename HasherT,
 				bool UseBackoff, bool UseShortIndex>
-		class ConcurrentHashtable {
+		class CNDC {
 		  public:
 			using key_t = KeyT;
 			using value_t = ValueT;
@@ -88,13 +88,13 @@ namespace numdb {
 				return true;
 			}
 
-			ConcurrentHashtable(size_t available_memory, double load_factor = 2) :
-					ConcurrentHashtable(
+			CNDC(size_t available_memory, double load_factor = 2) :
+					CNDC(
 							maxElemCountForCapacity(available_memory, load_factor),
 							load_factor, 0) {}
 
 		  private:
-			ConcurrentHashtable(size_t element_count, double load_factor, char dummy) :
+			CNDC(size_t element_count, double load_factor, char dummy) :
 					max_count_(element_count), load_factor_(load_factor), count_(0),
 					buckets_(static_cast<size_t>(element_count / load_factor), nullptr),
 					bucket_locks_(buckets_.size()), table_nodes_(element_count),
@@ -109,10 +109,10 @@ namespace numdb {
 			}
 
 		  public:
-			ConcurrentHashtable(const ConcurrentHashtable&) = delete;
-			ConcurrentHashtable& operator =(const ConcurrentHashtable&) = delete;
+			CNDC(const CNDC&) = delete;
+			CNDC& operator =(const CNDC&) = delete;
 
-			~ConcurrentHashtable() = default;
+			~CNDC() = default;
 
 			size_t capacity() const {
 				return max_count_;
@@ -200,7 +200,7 @@ namespace numdb {
 				TableNode* candidate = heapExtractMin();
 				if (!candidate)
 					return nullptr;
-
+				//FIXME Race condition
 				size_t bucket_nr = getBucket(candidate->key_);
 				TableNode** node_ref = &buckets_[bucket_nr];
 				lock_guard_t lg((bucket_locks_[bucket_nr]));
@@ -446,9 +446,9 @@ namespace numdb {
 		template <bool UseBackoff, bool UseShortIndex = true,
 				typename PriorityT = utility::WstPriority,
 				typename HasherT = mmh2::MurmurHash2<void>>
-		struct ConcurrentHashtableTypeHolder {
+		struct CNDCTypeHolder {
 			template <typename KeyT, typename ValueT>
-			using container_t = ConcurrentHashtable<KeyT, ValueT, PriorityT, HasherT, UseBackoff, UseShortIndex>;
+			using container_t = CNDC<KeyT, ValueT, PriorityT, HasherT, UseBackoff, UseShortIndex>;
 		};
 	}
 }
