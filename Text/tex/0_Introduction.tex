@@ -1,17 +1,25 @@
 
 \section{Memoization system}
-There is a strong trend nowadays in scientific computations – the size of data to be processed increases faster than available computing resources. Different optimization techniques are used to overcome this problem. For example, a memoization technique, which is as follows – a result R that has been computed once by a function F with argument A is stored in a memory (together with A). Then on consequent calls of F with A, R is retrieved from memory, hence a real call to F is omitted. This optimization turns out to be particularly useful when a call to F takes a long time to be computed (relatively to a time needed to retrieve an R from memory), and F is usually called only with a small subset of arguments. Sometimes this technique is also referred to as a caching. A target audience for this kind of memoization systems is scientific application developers. Scientific calculations are often performed on large servers or even supercomputers.
+There is a strong trend nowadays in scientific computations~-- the size of data to be processed increases faster than available computing resources. Different optimization techniques are used to overcome this problem. For example, a memoization technique, which is as follows~-- a result~$R$ that has been computed once by a function~$F$ with the argument~$A$ is stored in memory (together with $A$). Then on consequent calls of $F$ with~$A$, $R$ is retrieved from memory, hence the actual call to~$F$ is omitted. This optimization turns out to be particularly useful when a result of~$F$ takes a long time to be computed (relatively to a time needed to retrieve $R$ from memory), and $F$ is usually called only with a small subset of arguments. Sometimes this technique is also referred to as a caching.
 
+A target audience for this kind of memoization systems is scientific application developers.
 
-The concept of a numerical database, introduced by [draayer], describes one of such memoizing systems. Its main purpose is to “store and retrieve valuable intermediate information so costly redundant calculations can be avoided.” Authors also presented a possible implementation, that is based on a weighted search tree.
+The concept of a numerical database, introduced by Park, Draayer, and Zheng\cite{park90}, describes one of such memoization systems. Its main purpose is to ``store and retrieve valuable intermediate information so costly redundant calculations can be avoided.'' Authors also presented a possible implementation, that is based on a weighted search tree.
 
 The main goal of this thesis is to explore different look-up data structures, especially those supporting a concurrent access, which can be used in place of the weighted search tree and compare their performance. Then, the most promising data structures will be packed in a programming library, written in C++ programming language.
 
 
 \section{Structure}
-The remainder of this thesis is structured as follows. In section 2 some basic programming concepts are and data structures are described. The rest of the thesis relies on these terms. In the consequent section, the weighted search tree, as introduced, is explained.
+The remainder of this thesis is structured as follows:
+ \begin{description}
+ \item[In \cref{ch:pre}] some basic programming concepts and data structures are described. The rest of the thesis relies on these terms.
+ \item[In \cref{ch:numdb}] the contributions of~\cite{park90} are recapitulated~-- the numerical database concept and the weighted search tree are explained in~detail.
+ \item[In \cref{ch:alt}] all of the main contributions of this thesis are presented. \\ Specifically, the overview of different eviction policies, other than what have been proposed in~\cite{park90}, is provided. Furthermore, alternative data structures, which can be used as a base for the numerical database, are discussed.
 
-All main contributions of this thesis are presented in the 4. section. Specifically, the overview different eviction policies, other than what have been proposed in the original paper [], is provided. Furthermore, alternative data structures, which can be used as a base for a numerical database, are discussed.
+ \item [\Cref{ch:impl}] contains general information as well as a more in-depth overview of the \numdbname{} program library. This library provides an implementation of several containers (including concurrent containers), discussed in chapters 3 and 4.
 
-Section 5 contains general information as well as a more in-depth overview of the numdb program library. This library provides an implementation of several data structures (including concurrent data structures and the weighted search tree), discussed in sections 3 and 4. The results of the performance comparison of those data structures are presented and concluded in the following section. Then the outcomes of this work are concluded.
+ \item [In \cref{ch:bench}] the results of the performance comparison of the containers are presented and concluded.
 
+ \item [In conclusion] the outcomes of this thesis are recapitulated.
+
+\end{description}

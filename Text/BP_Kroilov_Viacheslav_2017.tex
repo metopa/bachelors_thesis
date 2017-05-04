@@ -11,9 +11,14 @@
 \usepackage[numbers]{natbib}
 \usepackage{listings} % for the source code
 
+\usepackage{cleveref}
 
 
-\graphicspath{{img/}} % images folder
+\newcommand{\libname}[1]{\textsc{\mbox#1}}
+\newcommand{\numdbname}{\libname{numdb}}
+\newcommand{\cndcname}{\libname{cndc}}
+
+%\graphicspath{{img/}} % images folder
 
 
 % % list of acronyms
@@ -29,17 +34,17 @@
 \authorWithDegrees{Viacheslav Kroilov} %author's name with academic degrees
 \supervisor{doc. Ing. Ivan {\v S}ime{\v c}ek, Ph.D.}
 \acknowledgements{THANKS (remove entirely in case you do not with to thank anyone)}
-\abstractEN{A numerical database speeds up computations by memoizing pairs of an argument and the result, computed by a function with the argument. A canonical numerical database is based on the weighted search tree – a combination of the AVL tree and the binary heap. An application of alternative data structures, namely hash table and splay tree, is discussed in this thesis. In addition, a new data structure – CNDC – is introduced. It is similar to the weighted search tree, but all operations are declared as thread-safe.
+\abstractEN{A numerical database speeds up computations by memoizing pairs of an argument and the result, computed by a function with the argument. A canonical numerical database is based on the weighted search tree~-- a combination of the AVL tree and the binary heap. An application of alternative data structures, namely hash table and splay tree, is discussed in this thesis. In addition, a new data structure~-- \cndcname{}~-- is introduced. It is similar to the weighted search tree, but all operations are declared as thread-safe.
 
-            All mentioned above data structures are implemented in the C++ programming language in form of a library, called numdb. The performance of each data structure is measured and the results are compared and discussed.
+            All mentioned above data structures are implemented in the C++ programming language as a programming library, called \numdbname. The performance of each data structure is measured and the results are compared and discussed.
 }
-\abstractCS{Numerická databáze zrychluje výpočet ukládáním do pamětí argumentů a spočítaných pomocí nějaké funkce z těchto argumentů výsledků. Kanonická implementace numerické databáze je založená na ohodnoceném binárním stromu – kombinace AVL-stromu a binární haldy. Možnost využití jiných datových struktur, a to je Splay-strom a hašovácí tabulka, je diskutována v této práce. Navíc, je zavedená zcela nová datová struktura – CNDC. Podporuje stejné operace jako ohodnocený binární strom, ale je přízpůsobená k použití ve vícevlaknovém prostředí.
+\abstractCS{Numerická databáze zrychluje výpočet ukládáním do pamětí argumentů a spočítaných pomocí nějaké funkce z těchto argumentů výsledků. Kanonická implementace numerické databáze je založená na ohodnoceném binárním stromu – kombinace AVL stromu a binární haldy. Možnost využití jiných datových struktur, a to je Splay strom a hašovácí tabulka, je diskutována v této práce. Navíc, je zavedená zcela nová datová struktura~-- \cndcname. Podporuje stejné operace jako ohodnocený binární strom, ale je přizpůsobená k použití ve vícevláknovém prostředí.
 
-            Všechny zmíněné datové struktury jsou implementovány v programovácím jazyce C++ v podobě programovácí knihovny numdb. Na závěr budou uvedené výsledky provedeného měření výkonu implementováných datových struktur.
+            Všechny zmíněné datové struktury jsou implementovány v programovacím jazyce C++ v podobě programovací knihovny \numdbname. Na závěr budou uvedené výsledky provedeného měření výkonu implementovaných datových struktur.
 }
 \placeForDeclarationOfAuthenticity{Prague}
 \keywordsCS{Numerická databáze, Vypočetní optimizace, Splay strom, Hašovací tabulka, Konkurentní [?] datové struktury, Fine-grained locking [?], C++}
-\keywordsEN{Numerical database, Computational optimization, Splay tree, Hash table, Concurrent look-up data structure, Fine-grained locking, C++}
+\keywordsEN{Numerical database, Computational optimization, Splay tree, Hash table, Concurrent lookup data structure, Fine-grained locking, C++}
 \declarationOfAuthenticityOption{1} %select as appropriate, according to the desired license (integer 1-6)
 % \website{http://site.example/thesis} %optional thesis URL
 
@@ -64,14 +69,11 @@
 }
 
 
-\newcommand{\class}[1]{\textbf{\mbox#1}}
-\newcommand{\method}[1]{\textit{\mbox#1}}
-\newcommand{\module}[1]{\textit{\mbox#1}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \setlength{\parindent}{0em}
 \setlength{\parskip}{1em}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \setsecnumdepth{part}
     \chapter{Introduction}
@@ -80,26 +82,29 @@
 
 \setsecnumdepth{all}
     \chapter{Preliminaries}
-    \input{tex/1_Preliminaries}
+    \label{ch:pre}
+    %\input{tex/1_Preliminaries}
 
     \chapter{Numerical database}
-    \input{tex/2_Numerical_database}
+    \label{ch:numdb}
+    %\input{tex/2_Numerical_database}
 
     \chapter{Numerical database variations}
-    \input{tex/3_Numerical_database_variations}
+    \label{ch:alt}
+    %\input{tex/3_Numerical_database_variations}
 
     \chapter{Library implementation}
-    \input{tex/4_Library_implementation}
+    \label{ch:impl}
+    %\input{tex/4_Library_implementation}
 
     \chapter{Performance evaluation}
-    \input{tex/5_Library_performance}
+    \label{ch:bench}
+    %\input{tex/5_Library_performance}
 
 \setsecnumdepth{part}
     \chapter{Conclusion}
+    \label{ch:conclusion}
     \input{tex/Conclusion}
-
-
-
 
 \bibliographystyle{iso690}
 \bibliography{bibliography}
