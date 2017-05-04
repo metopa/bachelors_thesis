@@ -7,45 +7,21 @@
 \usepackage{float} % floats
 \usepackage{indentfirst} % indent in first paragraph
 \raggedbottom
+\usepackage{amsmath}
 \usepackage[all]{hypcap} % for going to the top of an image when a figure reference is clicked
 \usepackage[numbers]{natbib}
 \usepackage{listings} % for the source code
 
-\usepackage{cleveref}
 \usepackage{xspace}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
+\usepackage{cleveref}
 
 
-\newcommand{\libname}[1]{\textsc{\mbox#1}}
+\newcommand{\libname}[1]{\textsc{\mbox#1}\xspace}
 \newcommand{\numdbname}{\libname{numdb}}
 \newcommand{\cndcname}{\libname{cndc}}
-\newcommand{\func}[2]{\ensuremath{\textbf{\textit{#1}}(#2)}}
-\newcommand{\findop}{\func{find}{}\xspace}
-\newcommand{\insertop}{\func{insert}{}\xspace}
-\newcommand{\removeop}{\func{remove}{}\xspace}
 
-% ==========================================================
-% Adapted from TeX.StackExchange.com user Juan A. Navarro's
-% solution for itemize as seen at
-% https://tex.stackexchange.com/a/4493/327
-% ----------------------------------------------------------
-\newcommand\blockitem[1][]{%
-  \closepage\item[#1]\minipage[t]{\linewidth}%
-  \let\closepage\endminipage%
-  }
-% ----------------------------------------------------------
-\newenvironment{block-description}{%
-  \description
-  \let\olditem\item
-  \let\closepage\relax
-  %\def\item[1][]{\blockitem}[1]
-}{%
-  \closepage
-  \enddescription
-}
 
-%\graphicspath{{img/}} % images folder
+\graphicspath{{img/}} % images folder
 
 
 % % list of acronyms
@@ -108,7 +84,30 @@
 \end{figure}
 }
 
+\newcommand{\func}[2]{\ensuremath{\textbf{\textit{#1}}(#2)}}
+\newcommand{\findop}{\func{find}{}\xspace}
+\newcommand{\insertop}{\func{insert}{}\xspace}
+\newcommand{\removeop}{\func{remove}{}\xspace}
 
+% ==========================================================
+% Adapted from TeX.StackExchange.com user Juan A. Navarro's
+% solution for itemize as seen at
+% https://tex.stackexchange.com/a/4493/327
+% ----------------------------------------------------------
+\newcommand\blockitem[1][]{%
+  \closepage\item[#1]\minipage[t]{\linewidth}%
+  \let\closepage\endminipage%
+  }
+% ----------------------------------------------------------
+\newenvironment{block-description}{%
+  \description
+  \let\olditem\item
+  \let\closepage\relax
+  %\def\item[1][]{\blockitem}[1]
+}{%
+  \closepage
+  \enddescription
+}
 
 \setlength{\parindent}{0em}
 \setlength{\parskip}{1em}
@@ -127,7 +126,7 @@
 
     \chapter{Numerical database}
     \label{ch:numdb}
-    %\input{tex/2_Numerical_database}
+    \input{tex/2_Numerical_database}
 
     \chapter{Numerical database variations}
     \label{ch:alt}
@@ -160,6 +159,12 @@
 	\acro{$BST$}{Application Programming Interface}
 	\acro{$R$}{Application Programming Interface}
 	\acro{$F$}{Application Programming Interface}
+	\acro{$left$}{Application Programming Interface}
+	\acro{$right$}{Application Programming Interface}
+	\acro{$key$}{Application Programming Interface}
+	\acro{$height$}{Application Programming Interface}
+	\acro{$size$}{Application Programming Interface}
+	\acro{$priority$}{Application Programming Interface}
 
 \end{acronym}
 

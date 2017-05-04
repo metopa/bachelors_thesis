@@ -40,6 +40,9 @@
 \setsecnumdepth{subsubsection}
 \chapterstyle{madsen}
 
+\RequirePackage{algorithm}
+\RequirePackage{algpseudocode}
+
 \RequirePackage{babel}[2008/07/06]
 \RequirePackage[unicode]{hyperref}
 
