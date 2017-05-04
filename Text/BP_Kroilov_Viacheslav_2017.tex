@@ -38,13 +38,26 @@
 
             All mentioned above data structures are implemented in the C++ programming language as a programming library, called \numdbname. The performance of each data structure is measured and the results are compared and discussed.
 }
-\abstractCS{Numerická databáze zrychluje výpočet ukládáním do pamětí argumentů a spočítaných pomocí nějaké funkce z těchto argumentů výsledků. Kanonická implementace numerické databáze je založená na ohodnoceném binárním stromu – kombinace AVL stromu a binární haldy. Možnost využití jiných datových struktur, a to je Splay strom a hašovácí tabulka, je diskutována v této práce. Navíc, je zavedená zcela nová datová struktura~-- \cndcname. Podporuje stejné operace jako ohodnocený binární strom, ale je přizpůsobená k použití ve vícevláknovém prostředí.
+\abstractCS{Numerická databáze zrychluje výpočet ukládáním mezivýsledků do pamětí.
+            Kanonická implementace numerické databáze je založená na ohodnoceném
+            binárním stromu~-- kombinace AVL-stromu a binární haldy.
+            V této práci je diskutována i možnost využití jiných datových struktur,
+            jak je Splay-strom a hašovácí tabulka.
+            Navíc je zavedená zcela nová datová struktura~-- \cndcname. Podporuje stejné
+            operace jako ohodnocený binární strom,
+            ale je přizpůsobená k použití ve vícevláknovém prostředí.
 
-            Všechny zmíněné datové struktury jsou implementovány v programovacím jazyce C++ v podobě programovací knihovny \numdbname. Na závěr budou uvedené výsledky provedeného měření výkonu implementovaných datových struktur.
+            Všechny zmíněné datové struktury jsou implementovány v
+            programovacím jazyce C++ v podobě programovací knihovny \numdbname.
+            Na závěr jsou uvedené výsledky měření výkonnosti implementovaných
+            datových struktur.
 }
 \placeForDeclarationOfAuthenticity{Prague}
-\keywordsCS{Numerická databáze, Vypočetní optimizace, Splay strom, Hašovací tabulka, Konkurentní [?] datové struktury, Fine-grained locking [?], C++}
-\keywordsEN{Numerical database, Computational optimization, Splay tree, Hash table, Concurrent lookup data structure, Fine-grained locking, C++}
+\keywordsCS{numerická databáze, vypočetní optimizace,
+            splay strom, hašovací tabulka, datové struktury pro paralelní
+            zpracování,
+            vícevláknová synchronizace, fine-grained locking, C++}
+\keywordsEN{numerical database, computational optimization, splay tree, hash table, concurrent lookup data structure, fine-grained locking, C++}
 \declarationOfAuthenticityOption{1} %select as appropriate, according to the desired license (integer 1-6)
 % \website{http://site.example/thesis} %optional thesis URL
 
