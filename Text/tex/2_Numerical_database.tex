@@ -1,0 +1,40 @@
+
+
+\section{Concept}
+In the year 1990 S. C. Park, J. P. Draayer, and S.-Q. Zheng introduced a memoization system, called a numerical database. Like every memoization system, its primary goal is to reduce costly redundant calculation. The main idea behind this concept is to design a data structure that stores a limited number of items – key-value pairs – and provide an efficient way to retrieve, insert and remove items. A value is associated with a key that can be used to calculate the value by a function. A complete process of a retrieval of a value is demonstrated in the figure … .
+
+\section{Priority}
+
+Each item has its assigned priority. When accessed, the priority of the node is updated. Park et. al. define priority as follows – “A good priority strategy should enable the frequency of a data item and its intrinsic value to be incorporated into its assigned priority.” Initial priority can be supplied by an external algorithm or computed by using some heuristics. For example, the time it took to compute the value. Some items can take much more time to be computed then others. Then those elements should be kept in the database even if they are accessed relatively rarely.
+
+When a numerical database reaches its maximum capacity, prior to the next insertion the item with the lowest priority is removed from the database. Therefore, a database should support queries on the item with the minimum priority. The way it is achieved in the original proposal is discussed later in this chapter.
+
+Park et. al. introduced a space-optimal representation of the item priority. To distinguish this representation from others, it will be called weighted search tree priority \(WST priority\). This representation is stored in a single 32 bits long unsigned integer, but at the same time combines both the base priority and the hit frequency of the item. The first 8 bits of the number are reserved for the base priority while remaining 24 bits contains hit frequency, multiplied by a base priority.
+Therefore the actual value is hit\_frequency * base\_priority * 256 + base\_priority. Another advantage of the WST priority is a simple adjustment when the hit frequency is updated. The base priority is just shifted 8 bits to the left \(i.e. multiplied by 256\) and added to the current priority value. However, this representation has some drawbacks that will be discussed later.
+
+\section{Weighted Search Tree}
+
+Park et. al. also proposed a data structure called the weighted search tree that can be used as a base for a numerical database. A weighted search tree is a combination of two well-known data structures – an AVL tree and a binary heap. Each of them has its purpose:
+An AVL tree is used for a fast item lookup, insertion, and removal in O(log n) time, where n is the total count of items.
+A binary heap is used to maintain priorities of nodes. Specifically, it provides an ability to find a node with the lowest priority in O(1) and can perform insertions and deletions in O(log n) time.
+Weighted search tree holds all its nodes in a single linear array. Those nodes are ordered in the same way as in a regular minimal binary heap:
+priority(node) < priority(leftChild(node)) AND
+priority(node) < priority(rightChild(node)),
+leftChild(node) and rightChild(node) of the node with index i are defined as 2 * i  and 2 * i + 1 respectively.
+The difference is that each node is an AVL tree node at the same time – it stores links to its left child, right child, and parent node. Additionally, the index of the tree root is stored separately. An example of a weighted search tree with keys …. is shown in the figure[].
+
+With a given structure three basic operations are defined as follows:
+Search operation is the same as in any binary tree – it is starts at the root and then continues as described in [].
+Insert operation consists of two steps. At first, the node is inserted into the binary search tree, and the tree is adjusted using AVL rotations. Obviously, these rotations only change pointers inside nodes. Therefore, they do not affect the binary heap structure. The second step is the insertion of the new item into the binary heap. It is done using the heapify operation []. Note that heap adjustments would reorder nodes so that binary search tree pointers would point to wrong nodes and the whole tree would become ill-formed. To avoid this, special care should be taken when nodes are swapped – one should also check and adjust tree pointers during swaps.
+Remove operation is similar to the insertion, but steps are performed in the reverse order – at first, the element is removed from the heap, then from the tree. Again, heap adjustments should be performed with respect to the tree structure.
+
+
+\section{Known Implementations}
+
+There are several known implementations of the numerical database concept.
+
+The reference implementation was made by Park, Bahri, Draayer, and Zheng. A complete source code is available here []. It was implemented in Fortran programming language. However, sources cannot be compiled with any modern Fortran compiler. Therefore this implementation is mentioned here but cannot participate in benchmarking. The numdb library discussed in the section X contains the implementation of a weighted search tree, recreated basing on [] and [].
+
+Another implementation has been developed and described by Miroslav Masat in his bachelor’s thesis []. Sources are available at []. However in this particular implementation item priorities are defined solely by the user and are not updated afterward. Therefore it is only applicable in scenarios when the item importance is known beforehand. A canonical numerical database has a broader field of applications.
+
+Both of the implementations are designed for a single-threaded environment only. It is a huge drawback since scientific applications are usually easily parallelizable and it is natural to run these programs on many-core systems. Therefore a memoization system must support concurrent access in order to be usable in real applications.

@@ -1,0 +1,30 @@
+\section{Benchmark}
+
+Performance evaluations is done with the benchmark program. For each tested data structure, the benchmark runs for a specified amount of time. Then the throughput \(operations per second\) is calculated as the total count of iterations divided by the total time.
+
+Instead of separately measuring the performance of every basic operation \(look-up, insertion, removal\), an overall numeric database performance is evaluated. The numeric database retrieval operations consists of either look-up \(in case the item with the specified key is in the database\) or look-up, user function invocation, item removal and item insertion. The user function is much slower than database operations. Therefore practically the most optimal numerical database is the one that calls a user function as rarely as possible.
+
+As a user function the recursive computation of the Nth FIbonacci number is chosen. This algorithm has a trivial implementation and having an exponential time complexity it is extremely inefficient. It is an advantage from the perspective of the benchmark as its task is to simulate a very computational-heavy function. What is more, the time it takes to compute the function can be easily adjusted by the function argument.
+
+Generally, cache systems perform well only on skewed inputs, when there is a small subset of items that are accessed most of the time while other items are accessed much less often. In this benchmark, a numerical database is tested with a random input sequence that has normal distribution of values. The parameters of the distribution are as follows:
+Mean [u]  is zero. The data structures presented in this library are agnostic to the particular argument values and their performance is only affected by the frequency of items in the input sequence. So [u] can equal to any number. Zero is any number.
+Standard deviation [sigma] is computed from the available memory and area-under-curve parameter. Capacity is calculated as the available memory divided by the size of a single item. Area-under-curve is a value from the interval \(0,1\) exclusive. It defines the ratio of accesses to the N most valuable items to the total count of accesses, where N is capacity. With given capacity and area-under-curve, [sigma] equals to capacity / 2 / Quantile(N(0,1), 0.5 + area / 2).
+
+The benchmark has several input parameters:
+User function argument minimum and maximum values – the range of values the Fibonacci function is called with is defined to simulate function which speed depends on its arguments.
+Available memory – the maximum amount of memory a numerical database uses.
+Thread count – relevant for concurrent numerical databases. Sets the number of  threads to run in parallel.
+Mean momentum – adjusts the rate at which the mean of the distribution is changed. If larger than zero, it simulates input sequences with non-static distribution.
+Area under curve – the parameter that affects the standard deviation of the distribution.
+
+The performance evaluation is done on those machines:
+Machine A
+%CPU: Intel® Core™ i5-6200U CPU @ 2.30GHz × 2
+Memory: 8 GB DDR3 1600 MHz
+OS: Linux Ubuntu 16.04 LTS 64-bit
+Machine B
+CPU:
+Memory:
+OS:
+
+\section{Results}

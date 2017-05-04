@@ -1,0 +1,77 @@
+In the following chapter the numdb library is described. At first, global design decisions are explained. Then the most important classes are analyzed and the particular tricks and optimizations used in the implementation are described.
+
+\section{Chosen Technologies}
+
+The library is written in C++ programming language. It has been chosen by the following criteria:
+C++ is a compiled language. Dynamic and managed languages have a huge runtime overhead, that significantly affects general application performance, while not providing any serious advantage (at least from the perspective of scientific applications).
+Modern C++ compilers applies lots of advanced code optimizations, increasing the gap between compiled and dynamic languages even further.
+C++ has an advanced template system that helps to write highly reusable and extendable code, while adding no overhead in runtime.
+
+The library uses some language and standard library features that have been introduced in C++14 standard. Therefore, the compiler must be C++14 conformant.
+
+The build process is managed by the CMake software, one of the most popular tool in this category. A great number of other projects also use CMake for managing the build process. It is trivially to embed a one CMake-based project into another.
+
+CMake uses CMakeLists.txt file, that contains the project description and numerous settings, to generate a make file (other generators are also supported). Then, a program or a library can be built by invocation of the GNU make utility.
+
+\section{Project Structure Overview}
+The library itself is divided into include/numdb folder that contains header files and lib folder with source files (that can be compiled separately and merged with the user program during linkage). Since the library relies on templates heavily, the majority of code is in the header files.
+
+\subsection{Library}
+The library itself is divided into include/numdb folder that contains header files and lib folder with source files (that can be compiled separately and merged with the user program during linkage). Since the library relies on templates heavily, the majority of code is in the header files.
+
+\subsection{Testing and Performance Evaluation}
+The library also contains unit tests \(test folder\) and the benchmarking code \(benchmark folder\). Unit test subproject depends on the Google.Test framework. The benchmark uses Google Benchmark framework \(bundled with the library\) as a benchmark runner and Boost.Math library for some statistical functions \(must be installed separately []\).
+
+\subsection{External Libraries}
+The support libraries, namely function\_traits, murmurhash2functor, Google Benchmark and Google.Test, are placed in the 3rdparty folder and are distributed along with the library.
+function\_traits extends C++ standard library’s metaprogramming capabilities by defining a type trait that can deduce argument types of a provided functor object.
+murmurhash2functor library contains murmurhash2 hash function implementation [] and wraps it into an interface similar to the std::hash class. The demand for an std::hash replacement is dictated by the fact that the standard hash does not meet hash table prerequisites, because the std::hash for an integer number is defined as the number itself []; under certain circumstances, this can lead to a high number of hash collisions.
+Google Benchmark
+Google.Test
+
+
+
+\section{Source Code Overview}
+In the following section individual parts of the library are analyzed. The numerical database is called function cache in this implementation because it has a cleaner meaning than the less known numerical database term.
+Numdb.h
+This is the main entry point of the library. Users need to include only this file into their project to gain access to the data structures provided by the library.
+Function\_cache
+FunctionCache is the main class that realizes the numerical database. However, it does not determine how items are stored – it takes a container type as a template parameter and stores all items in the instance of the container provided.
+
+This class defines helper function and type definitions, e.g. args\_tuple\_t – a tuple that can store arguments of a function call. What is more, the item retrieval operation, as described in [], is implemented with actual calls to the lookup and insertion routines forwarded to the underlying container.
+
+FunctionCache is responsible for calling the provided user function in case the requested item was not found in the container. All invocations are timed with a system clock; then the duration is converted into an initial priority that is assigned to the item \(initial priority generator is used\).
+Initial\_priority\_generator.h
+This header file contains two classes, MinMaxInterpolationPriorityGenerator and RatioPriorityGenerator, that compute the item initial priority, basing on the duration of the current user function call and durations of previous calls.
+
+MinMaxInterpolationPriorityGenerator generates a priority as a linear interpolation between the minimum and the maximum values, while RatioPriorityGenerator computes it as a proportion to the current average value. The latter scheme proved to be fairer and is used in the final implementation. What is more, both schemes have an adaption mechanism – the average is divided by two every N iterations, so that the latest input has a bigger influence on the final result than data from previous periods. At the same time, the historic data is not discarded completely.
+Fair LRU
+FairLRU class implements an alternative eviction strategy – the item accessed the least recently among all items is always chosen for eviction. It is achieved by maintaining a doubly linked list of all nodes. When a node is inserted, it is placed in the tail \(end\) of the list. When a node is accessed, it is extracted from its current position, then inserted in the tail of the list. Therefore, the least recently used node appears in the head (start) of the list. All mentioned operations – insertion at the end, extraction \(with a known pointer to a node\), extraction from the head – have O\(1\) time complexity.
+To use FairLRU in a container, an instance of FairLRU should be added as a class member and containers’ nodes should be derived from the FairLRU::Node class \(it contains members that are required for a doubly linked list implementation\). Then all basic operations, namely item lookup, insertion, and eviction, should call corresponding methods on the FairLRU instance.
+Fair LFU
+FairLFU implements external interface and usage scenario are the same as in FairLRU. Internally, the two-level linked list implementation is used, as described by Shah, Mitra, and Matani[]. This implementation has been chosen because it provides O\(1\) time complexity on all basic operations. Another well-known LFU implementation is based on a binary heap, but it achieves only O\(log N\) time complexity.
+
+However, the implementation used in the library differs from the original one. When a new item is inserted, the original implementation always assigns 1 to the node hit count. This yields a very ineffective behavior as the LFU tends to evict nodes that have just been added and preserves older ones, even those that have been accessed only twice. A solution of this problem, implemented in the library, is to calculate the initial hit counter value as a hit count of the least frequently accessed node \(the one that is in the list head and may be evicted in the next step\) incremented by one. This approach ensures that a new node is never inserted at the list head. What is more, this adds a priority degradation process \(the approach is inverted – priority of new items is boosted instead of decreasing priority of older ones\).
+Weighted Search Tree
+Basing on [] and [], an original weighted search tree has been reimplemented. Unlike the original implementation, an adjustable priority degradation is also implemented – while traversing over an AVL tree \(during item lookup\), priorities of all visited nodes are lowered, and the binary heap is adjusted accordingly.
+
+The improved WST priority scheme \(as discussed in []\) is used for storing node priority. Another optimization is the elimination of an AVL balance factor as a separate structure member \(in this case it takes at least 1 byte\). It is embedded into the priority component – 2 bits are used for storing the balance factor, and remaining 30 are used for the priority \(8 bits for the base priority and 22 bits for the accumulated priority\). It is achieved with the C++ bit field feature.
+Hash table
+Hash\_table folder contains implementation of FixedHashtableBase and FixedHashtableFairLU classes.
+
+FixedHashtableBase defines hash table implementation, that is common for all derived classes. However, there’s no logic for choosing a node to be evicted – FixedHashtableBase forwards the call to its derived class, where this operation is implemented. Normally, this behavior can be achieved with a virtual method call. However, virtual invocation always brings an additional overhead. Another drawback is that a virtual call can not be inlined by a compiler. Note, that we are dealing with a static polymorphism – all functions that can be called are known at compile time and are never changed in runtime, in contrast to a dynamic polymorphism.
+
+To simulate a static polymorphism, "Curiously Recurring Template Pattern" is often used []. The base class \(that needs to call a function which implementation is provided only in a derived class\) takes its derived class as a template argument. When a polymorphic method needs to be called, base class object casts a pointer to itself \(this pointer\) to the derived class and then calls the desired function. Name lookup mechanism finds the implementation of the method in the derived class and performs a call to it. It is a regular call, so a compiler can apply call inlining and other optimizations.
+
+FixedHashtableFairLU class contains an implementation of a method, that searches for the least valuable item, that is to be evicted. To choose the node, it uses LRU or LFU manager \(actually, the manager is passed as a template parameter, so it is possible to extend the implementation with a custom manager\).
+
+Splay tree
+Splay\_tree folder contains implementations of different variations of a splay tree. Practically complete tree implementation is in SplayTreeBase class. Similarly to the hash table implementation, the code for determining the least valuable item is missing from the implementation. Again, the derived classes are responsible for implementing it.
+
+This splay tree implementation does not rely on parent pointer in any way. Therefore, it could be excluded from the node declaration. This would decrease the memory overhead per node. However, for some item eviction policies, a pointer to the parent is an inevitable requirement \(for others it is not\). To support both types of policies, a wrapper over a parent pointer is introduced. The wrapper interface consists of get and set operations. Two implementations of the wrapper are provided – an actual implementation, that encapsulates a real pointer, and a mock one, that stores no value.
+
+A derived class tells to SplayTreeBase \(through a trait class\) which wrapper implementation it requires and SplayTreeBase class embeds the chosen wrapper into the SplayTreeBase::Node structure.
+
+Even though the mock wrapper contains no data members, the size of an empty structure can not be zero in C++ []. Therefore, when the wrapper is embedded into a node, it takes at least one byte while not containing any valuable information. This unnecessary overhead is eliminated using the Empty Base Optimization [].
+
+There are two derived classes, SplayTreeFairLu and SplayTreeBottomNode, which implement item eviction policies. SplayTreeFairLu is similar to the HashTableFairLu class – it also reuses LRU and LFU node eviction policies. SplayTreeBottomNode is based on the splay policy, discussed in [].
