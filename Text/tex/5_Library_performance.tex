@@ -11,20 +11,26 @@ Mean [u]  is zero. The data structures presented in this library are agnostic to
 Standard deviation [sigma] is computed from the available memory and area-under-curve parameter. Capacity is calculated as the available memory divided by the size of a single item. Area-under-curve is a value from the interval \(0,1\) exclusive. It defines the ratio of accesses to the N most valuable items to the total count of accesses, where N is capacity. With given capacity and area-under-curve, [sigma] equals to capacity / 2 / Quantile(N(0,1), 0.5 + area / 2).
 
 The benchmark has several input parameters:
-User function argument minimum and maximum values – the range of values the Fibonacci function is called with is defined to simulate function which speed depends on its arguments.
-Available memory – the maximum amount of memory a numerical database uses.
-Thread count – relevant for concurrent numerical databases. Sets the number of  threads to run in parallel.
-Mean momentum – adjusts the rate at which the mean of the distribution is changed. If larger than zero, it simulates input sequences with non-static distribution.
-Area under curve – the parameter that affects the standard deviation of the distribution.
+User function argument minimum and maximum values~-- the range of values the Fibonacci function is called with is defined to simulate function which speed depends on its arguments.
+Available memory~-- the maximum amount of memory a numerical database uses.
+Thread count~-- relevant for concurrent numerical databases. Sets the number of  threads to run in parallel.
+Mean momentum~-- adjusts the rate at which the mean of the distribution is changed. If larger than zero, it simulates input sequences with non-static distribution.
+Area under curve~-- the parameter that affects the standard deviation of the distribution.
 
 The performance evaluation is done on those machines:
-Machine A
-%CPU: Intel® Core™ i5-6200U CPU @ 2.30GHz × 2
-Memory: 8 GB DDR3 1600 MHz
-OS: Linux Ubuntu 16.04 LTS 64-bit
-Machine B
-CPU:
-Memory:
-OS:
+\begin{itemize}
+\item Single-threaded benchmarks
+\begin{description}
+\item [CPU] Intel\textregistered{} Core\texttrademark{} i5-6200U @ 2.30GHz $ \times $ 2
+\item [Memory] 8 GB DDR3 1600 MHz
+\item [OS] Linux\textregistered{} Ubuntu\textregistered{} 16.04 LTS 64-bit
+\end{description}
+\item Multi-threaded benchmarks
+\begin{description}
+\item [CPU] Intel\textregistered{} Core\texttrademark{} i5-6200U @ 2.30GHz $ \times $ 2
+\item [Memory] 8 GB DDR3 1600 MHz
+\item [OS] Linux\textregistered{} Ubuntu\textregistered{} 16.04 LTS 64-bit
+\end{description}
+\end{itemize}
 
 \section{Results}
