@@ -24,7 +24,7 @@ if [ $? -eq 0 ]; then
     echo -n "Successfully Compiled ${PDF_FILE}"
     xdg-open ${PDF_FILE}
 else
-    head -n -3 ${LOG_FILE} | sed "s/^\..*\/\([^\/]*\.tex:[0-9]*\):/\.(\1)/"
+    head -n -10 ${LOG_FILE} | sed "s/^\..*\/\([^\/]*\.tex:[0-9]*\):/\.(\1)/"
     echo -e "${RED}"
     echo -n "Compilation Error ${TEX_FILE}"
 fi

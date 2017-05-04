@@ -12,11 +12,38 @@
 \usepackage{listings} % for the source code
 
 \usepackage{cleveref}
+\usepackage{xspace}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 
 \newcommand{\libname}[1]{\textsc{\mbox#1}}
 \newcommand{\numdbname}{\libname{numdb}}
 \newcommand{\cndcname}{\libname{cndc}}
+\newcommand{\func}[2]{\ensuremath{\textbf{\textit{#1}}(#2)}}
+\newcommand{\findop}{\func{find}{}\xspace}
+\newcommand{\insertop}{\func{insert}{}\xspace}
+\newcommand{\removeop}{\func{remove}{}\xspace}
+
+% ==========================================================
+% Adapted from TeX.StackExchange.com user Juan A. Navarro's
+% solution for itemize as seen at
+% https://tex.stackexchange.com/a/4493/327
+% ----------------------------------------------------------
+\newcommand\blockitem[1][]{%
+  \closepage\item[#1]\minipage[t]{\linewidth}%
+  \let\closepage\endminipage%
+  }
+% ----------------------------------------------------------
+\newenvironment{block-description}{%
+  \description
+  \let\olditem\item
+  \let\closepage\relax
+  %\def\item[1][]{\blockitem}[1]
+}{%
+  \closepage
+  \enddescription
+}
 
 %\graphicspath{{img/}} % images folder
 
@@ -96,7 +123,7 @@
 \setsecnumdepth{all}
     \chapter{Preliminaries}
     \label{ch:pre}
-    %\input{tex/1_Preliminaries}
+    \input{tex/1_Preliminaries}
 
     \chapter{Numerical database}
     \label{ch:numdb}
@@ -127,7 +154,12 @@
 
 \chapter{Acronyms}
 \begin{acronym}
-	\acro{API}{Application Programming Interface}
+	\acro{$N$}{Application Programming Interface}
+	\acro{$T$}{Application Programming Interface}
+	\acro{$K$}{Application Programming Interface}
+	\acro{$BST$}{Application Programming Interface}
+	\acro{$R$}{Application Programming Interface}
+	\acro{$F$}{Application Programming Interface}
 
 \end{acronym}
 
