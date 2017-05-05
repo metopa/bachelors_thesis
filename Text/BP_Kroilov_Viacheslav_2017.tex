@@ -64,6 +64,7 @@
 \declarationOfAuthenticityOption{1} %select as appropriate, according to the desired license (integer 1-6)
 % \website{http://site.example/thesis} %optional thesis URL
 
+\setcounter{secnumdepth}{3}
 
 \begin{document}
 
@@ -85,6 +86,7 @@
 }
 
 \newcommand{\func}[2]{\ensuremath{\textbf{\textit{#1}}(#2)}}
+\newcommand{\nsnum}[2]{\ensuremath{\texttt{#1}_{#2}}}
 \newcommand{\findop}{\func{find}{}\xspace}
 \newcommand{\insertop}{\func{insert}{}\xspace}
 \newcommand{\removeop}{\func{remove}{}\xspace}
@@ -130,7 +132,7 @@
 
     \chapter{Numerical database variations}
     \label{ch:alt}
-    %\input{tex/3_Numerical_database_variations}
+    \input{tex/3_Numerical_database_variations}
 
     \chapter{Library implementation}
     \label{ch:impl}
@@ -138,7 +140,7 @@
 
     \chapter{Performance evaluation}
     \label{ch:bench}
-    %\input{tex/5_Library_performance}
+    \input{tex/5_Library_performance}
 
 \setsecnumdepth{part}
     \chapter{Conclusion}

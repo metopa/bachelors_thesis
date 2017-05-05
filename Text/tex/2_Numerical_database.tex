@@ -1,26 +1,28 @@
 
 
 \section{Concept}
-In the year 1990 S.C.~Park, J.P.~Draayer, and S.-Q.~Zheng introduced a memoization system, called a numerical database\cite{park90}. Like every memoization system, its primary goal is to reduce costly redundant calculation. The main idea behind this concept is to design a data structure that stores a limited number of items~-- key-value pairs~-- and provide an efficient way to retrieve, insert and remove items. A value is associated with a key that can be used to calculate the value by a function. A complete process of a retrieval of a value is demonstrated in the figure ….
+In the year 1990 S.C.~Park, J.P.~Draayer, and S.-Q.~Zheng introduced a memoization system, called the \emph{numerical database}\cite{park90}. Like every memoization system, its primary goal is to reduce costly redundant calculation. The main idea behind this concept is to design a data structure that stores a limited number of items~-- key-value pairs~-- and provide an efficient way to retrieve, insert and remove items. A value is associated with a key that can be used to calculate the value by a function. A complete process of a retrieval of a value is demonstrated in the figure ….
 
 \section{Priority}
-
+\label{sec:wst_priority}
 Each item has its assigned priority. When accessed, the priority of the node is updated. Park et. al. define priority as follows~-- ``A good priority strategy should enable the frequency of a data item and its intrinsic value to be incorporated into its assigned priority.'' Initial priority can be supplied by an external algorithm or computed using some heuristics. For example, the heuristic can take be based on the time it took to compute the value: some items can take much more time to be computed then others, then those elements should be kept in the database even if they are accessed relatively rarely.
 
 When a numerical database reaches its maximum capacity, prior to the next insertion the item with the lowest priority is removed from the database. Therefore, a database should support queries on the item with the minimum priority. The way it is achieved in the original proposal is discussed later in this chapter.
 
 Park et. al. introduced a space-optimal representation of the item priority. To distinguish this representation from others, it will be called the \emph{weighted search tree priority} (WST priority). This representation is stored in a single 32 bits long unsigned integer, but combines both the base priority and the hit frequency at the same time. The first 8 bits of the number are reserved for the base priority while remaining 24 bits contains hit frequency, multiplied by a base priority.
 Therefore, the actual priority value equals to
-\[hit\_frequency \times base\_priority \times 256 + base\_priority\]
+\begin{equation}
+hit\_frequency \times base\_priority \times 256 + base\_priority
+\end{equation}
 
 Another advantage of the WST priority is a simple adjustment procedure when the hit frequency is updated (see \cref{alg:wst_priority1}). However, this representation also has some drawbacks that will be discussed in the next chapter.
-
+\newfloat{algorithm}{tbp}{lop}
 \begin{algorithm}
 \caption{$WST$ priority update}\label{alg:wst_priority1}
 \begin{algorithmic}[1]
   \Procedure{Update}{$priority$}\Comment{4 bytes long unsigned integer}
-    \State $base\_priority\gets priority \mathrel{\&} FF_{16}$\Comment{Hexadecimal number}
-    \State $priority \gets priority + base\_priority \times 256$
+    \State $base\_priority\gets priority \mathrel{\&} \nsnum{FF}{16}$\Comment{Hexadecimal number}
+    \State $priority \gets priority + base\_priority \times \nsnum{100}{16}$
     \State \Comment{Multiplication shifts the number 8 bits to the left}
     \State \textbf{return} $priority$
   \EndProcedure
@@ -39,7 +41,7 @@ Weighted search tree holds all its nodes in a single linear array. These nodes a
 \begin{equation}
 \begin{aligned}
   \forall N \in \textsc{Heap},{}
-  & \func{priority}{N} < \func{priority}{\func{heapLeft}{N}} {} \land \\
+     & \func{priority}{N} < \func{priority}{\func{heapLeft}{N}} {} \land \\
      & \func{priority}{N} < \func{priority}{\func{heapRight}{N}}
 \end{aligned}
 \end{equation}

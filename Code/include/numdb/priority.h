@@ -71,10 +71,10 @@ namespace numdb {
 			}
 
 			void access() {
-				uint32_t priority = priority_;
+				uint64_t priority = priority_;
 				constexpr uint32_t max_priority = (uint32_t) -1;
 				priority += (priority & 0xFF) << 8;
-				priority_ = (std::min(priority, max_priority) & 0xFFFFFF00) +
+				priority_ = (uint32_t)(std::min(priority, max_priority) & 0xFFFFFF00) +
 							(priority_ & 0xFF);
 			}
 
