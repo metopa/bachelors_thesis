@@ -49,12 +49,12 @@ This is the main entry point of the \numdbname library. Users need to include th
 \subsection{function\_cache.h}
 \classname{FunctionCache} is the main class that realizes the numerical database concept. However, it does not determine how items are stored~-- it takes a container type as a template parameter and stores all items in the instance of the container provided.
 
-This class defines helper function, that are common for all numerical databases, and type definitions, e.g. \classname{args\_tuple\_t}~-- a tuple that can store arguments of a function call. What is more, the item retrieval operation, as described in [========================], is implemented with actual calls to the lookup and insertion routines forwarded to the underlying container.
+This class defines helper function, that are common for all numerical databases, and type definitions, e.g. \classname{args\_tuple\_t}~-- a tuple that can store arguments of a function call. What is more, the item retrieval operation, as described in the \cref{alg:numdb_get}, is implemented with actual calls to the lookup and insertion routines forwarded to the underlying container.
 
 \classname{FunctionCache} is responsible for calling the provided user function in case the requested item was not found in the container. All invocations are timed with a system clock; then the duration is converted into an initial priority that is assigned to the item (initial priority generator is used).
 
-\subsection{Initial\_priority\_generator.h}
-This header file contains two classes, \classname{MinMaxPriorityGenerator} and \classname{RatioPriorityGenerator}, that compute the item initial priority basing on the duration of the current user function call and durations of previous calls.
+\subsection{initial\_priority\_generator.h}
+This header file contains classes that are responsble for computing the initial item priority basing on the duration of the current user function call and durations of previous calls.
 
 \classname{MinMaxPriorityGenerator} calculates a priority as a linear interpolation between the minimum and the maximum values. \classname{RatioPriorityGenerator} calculates it as a proportion to the current average value. The latter scheme proved to be fairer and is used in the final implementation.
 
@@ -77,7 +77,7 @@ The solution of this problem, presented in the library, is to calculate the init
 As a side effect, this adds the priority aging process (the approach is inverted~-- priority of new items is boosted instead of decreasing priority of older ones).
 
 \subsection{weighted\_search\_tree.h}
-Basing on \cite{park90} and \cite{park94}, the original weighted search tree has been reimplemented. Unlike the original implementation, the adjustable priority aging is also implemented~-- while traversing over the AVL tree (during item lookup), priorities of all visited nodes are decreased, and the binary heap is adjusted accordingly.
+Basing on \cite{park90} and \cite{park94}, the original weighted search tree has been reimplemented. Unlike the original implementation, the priority aging (see \cref{sssec:priority_aging}) is also implemented~-- while traversing over the AVL tree (during item lookup), priorities of all visited nodes are decreased, and the binary heap is adjusted accordingly.
 
 The improved WST priority scheme (as discussed in \cref{sssec:improved_wst}) is used for the node priority representation. Another optimization is the elimination of an AVL balance factor as a separate structure member (in this case it takes at least 1 byte). It is embedded into the priority component~-- 2 bits are used for storing the balance factor, and remaining 30 are used for the priority (8 bits for the base priority and 22 bits for the accumulated priority). It is achieved with the \emph{C++ bit field} feature.
 
@@ -133,6 +133,6 @@ There are two derived classes, that are responsible for the item eviction policy
  \item [\classname{SplayTreeBottomNode}] realizes the Splay eviction policy, as described in \cref{sssec:spolicy}
 \end{itemize}
 
-\subsection{concurrent\_adapters/}
+\subsection{Concurrent containers}
+  \numdbname contains 2 concurrent adapters, namely \classname{CoarseLockConcurrentAdapter} and \classname{BinningConcurrentAdapter}, and \cndcname data structure implementation, described in \cref{sec:concurrent_containers}.
 
-\subsection{cndc}

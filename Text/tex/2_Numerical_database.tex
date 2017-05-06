@@ -1,13 +1,37 @@
 
 
 \section{Concept}
-In the year 1990 S.C.~Park, J.P.~Draayer, and S.-Q.~Zheng introduced a memoization system, called the \emph{numerical database}\cite{park90}. Like every memoization system, its primary goal is to reduce costly redundant calculation. The main idea behind this concept is to design a data structure that stores a limited number of items~-- key-value pairs~-- and provide an efficient way to retrieve, insert and remove items. A value is associated with a key that can be used to calculate the value by a function. A complete process of a retrieval of a value is demonstrated in the figure ….
+In the year 1990 S.C.~Park, J.P.~Draayer, and S.-Q.~Zheng introduced a memoization system, called the \emph{numerical database}\cite{park90}. Like every memoization system, its primary goal is to reduce costly redundant calculation. The main idea behind this concept is to design a data structure that stores a limited number of items~-- key-value pairs~-- and provide an efficient way to retrieve, insert and remove items. A value is associated with the key that can be used to calculate the value by a function. The complete process of the item retrieval is demonstrated in the \cref{alg:numdb_get}.
+
+\newfloat{algorithm}{tp}{lop}
+\begin{algorithm}
+\caption{Numerical database item retrieval}\label{alg:numdb_get}
+\begin{algorithmic}[1]
+  \Procedure{Retrieve}{$numdb, K$}
+    \State $(V, found) \gets numdb.\func{find}{K} $
+    \If {$found = true$}
+      \State $numdb.\func{update\_priority}{K} $ \Comment{Can be embedded into \findop}
+      \State \textbf{return} $V$
+    \EndIf
+    \State \Comment{The item was not found and must be recalculated}
+    \State $(V, priority) \gets numdb.\func{call\_user\_function}{K}$
+
+    \If {$numdb.\func{is\_full}{}$}
+      \State $numdb.\func{evict\_item}{}$ \Comment{Remove the item with the lowest priority}
+    \EndIf
+    \State $numdb.\func{insert}{K, V, priority}$
+    \State \textbf{return} $V$
+  \EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
 \section{Priority}
 \label{sec:wst_priority}
+
 Each item has its assigned priority. When accessed, the priority of the node is updated. Park et. al. define priority as follows~-- ``A good priority strategy should enable the frequency of a data item and its intrinsic value to be incorporated into its assigned priority.'' Initial priority can be supplied by an external algorithm or computed using some heuristics. For example, the heuristic can take be based on the time it took to compute the value: some items can take much more time to be computed then others, then those elements should be kept in the database even if they are accessed relatively rarely.
 
 When a numerical database reaches its maximum capacity, prior to the next insertion the item with the lowest priority is removed from the database. Therefore, a database should support queries on the item with the minimum priority. The way it is achieved in the original proposal is discussed later in this chapter.
+\\
 
 Park et. al. introduced a space-optimal representation of the item priority. To distinguish this representation from others, it will be called the \emph{weighted search tree priority} (WST priority). This representation is stored in a single 32 bits long unsigned integer, but combines both the base priority and the hit frequency at the same time. The first 8 bits of the number are reserved for the base priority while remaining 24 bits contains hit frequency, multiplied by a base priority.
 Therefore, the actual priority value equals to
@@ -49,9 +73,9 @@ Weighted search tree holds all its nodes in a single linear array. These nodes a
 \func{heapLeft}{N} and \func{heapRight}{N} of $N$ with index $i$ are defined as $(2 \times i)$ and $(2 \times i + 1)$ respectively.
 
 
-The difference is that each node is an AVL tree node at the same time~-- it stores links to its left child, right child, and parent node. Additionally, the index of the tree root is stored separately. An example of a weighted search tree with keys …. is shown in the figure[].
+The difference is that each node is an AVL tree node at the same time~-- it stores links to its left child, right child, and parent node. Additionally, the index of the tree root is stored separately.
 
-With a given structure three basic operations are defined as follows:
+With a given structure the three basic operations are defined as follows:
 \begin{block-description}
 \blockitem[\findop] is the same as in any binary tree~-- it is begins at the root and then continues as described in \cref{alg:bst_find}.
 \blockitem[\insertop] consists of two steps:

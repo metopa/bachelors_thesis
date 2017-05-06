@@ -1,9 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% Foreword %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% Functional requirements %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Binary search tree}
+\section{Binary Search Tree}
 
-A binary search tree is a data structure that implements \findop, \insertop and, \removeop operations on a set of keys. Key~$K$ can be of any type, that has a total order. Throughout the thesis, trees with distinct keys are discussed, although of course, it is not the necessary condition.
+A binary search tree is a data structure that implements \findop, \insertop, and \removeop operations on a set of keys. Key~$K$ can be of any type, that has a total order. Throughout the thesis, trees with distinct keys are discussed, although of course, it is not the necessary condition.
 
 A binary tree consists of nodes. A node~$N$ consists of a key (defined as~\func{key}{N}) and two references to other nodes~-- left child (defined as~\func{left}{N}) and right child (defined as~\func{right}{N}). A reference may contain a link to an existing node or a special value $nil$, that means that the reference is empty. A node that contains a link to a child is called a \emph{parent} of this child node. Nodes may contain other attributes as well, but those are not substantial for this explanation. A node that has no children (\(\func{left}{N} = nil \land \func{right}{N} = nil\)) is called a \emph{leaf}.
 

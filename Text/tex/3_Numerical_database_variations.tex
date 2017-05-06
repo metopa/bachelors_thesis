@@ -32,6 +32,7 @@ The difference between these two methods is the common trade-off between time an
 %%%%%%%%%%%%Simple priority?
 
 \subsection{Priority Aging}
+\label{sssec:priority_aging}
 The WST priority has one more drawback~-- it is suitable only for static input distributions~-- distributions, which mean remains constant during the execution. However, if the mean is known beforehand it is possible to construct a static optimal BST\cite[p.~442]{knuth3}, that will be more efficient than any dynamic lookup data structure.
 
 A numerical database with the WST priority performs poorly on the time-varying distribution~-- a distribution which mean changes over time~-- while this type of distributions is more common in the real world applications. The problem arises from the fact that the priority does not reflect when an item was accessed for the last time. The worst-case scenario is the following: an item is added to a database, then it is accessed frequently hence its priority rises to the maximum, and then is not used over a long time. During the runtime, several items like this can appear. Even though at some point they are not accessed anymore they are still the most valuable items from the perspective of the database hence they will be kept much longer than other items. This pollutes the database with elements that are stored but not used.
@@ -69,7 +70,7 @@ Another data structure that looks promising is the splay tree.
 As it was mentioned in \cref{sec:splay}, usually splay trees tend to be slower than AVL. However, in application to the numerical database, it is possible to exploit the fact that the least valuable nodes are usually gathered in leaves of the tree. Therefore it is is possible to eliminate a binary heap from a numerical database and to use the splay policy, as described in \cref{sec:spolicy}. What is more, it is possible to implement a numerical database using a concurrent splay tree\cite{cb_tree}.
 
 \section{Alternative Concurrent Containers}
-
+\label{sec:concurrent_containers}
 \subsection{Coarse-grained Lock Adapter}
 The \numdbname library provides a universal adapter, that wraps a sequential container and protects it by using a coarse-grained lock. It has the same interface, as a usual numerical database container. All methods follow the same structure:
 \begin{enumerate}
