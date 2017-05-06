@@ -1,11 +1,11 @@
-/** @file concurrent_hashtable_binary_heap.h
+/** @file cndc.h
  *  @brief
  *
  *  @author Viacheslav Kroilov (metopa) <slavakroilov@gmail.com>
  */
 
-#ifndef NUMDB_CONCURRENT_HASHTABLE_BINARY_HEAP_H
-#define NUMDB_CONCURRENT_HASHTABLE_BINARY_HEAP_H
+#ifndef NUMDB_CNDC_H
+#define NUMDB_CNDC_H
 
 #include <cassert>
 #include <cmath>
@@ -452,4 +452,4 @@ namespace numdb {
 		};
 	}
 }
-#endif //NUMDB_CONCURRENT_HASHTABLE_BINARY_HEAP_H
+#endif //NUMDB_CNDC_H

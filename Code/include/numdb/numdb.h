@@ -15,7 +15,7 @@
 
 #include "hash_table/fixed_hashtable_fair_lu.h"
 #include "hash_table/fixed_hashtable_binary_heap.h"
-#include "hash_table/concurrent_hashtable_binary_heap.h"
+#include "numdb/cndc/cndc.h"
 
 #include "wst/weighted_search_tree.h"
 

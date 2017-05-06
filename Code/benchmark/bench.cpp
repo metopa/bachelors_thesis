@@ -198,9 +198,9 @@ BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<BottomNodeSplayTree<Cano
 ->ThreadRange(1, maxThreads)->Apply(shortSequence);
 
 
-BENCHMARK_TEMPLATE(ParallelBM, ConcurrentPriorityHashtable<false>)
+BENCHMARK_TEMPLATE(ParallelBM, CNDC<false>)
 ->ThreadRange(1, maxThreads)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(ParallelBM, ConcurrentPriorityHashtable<true>)
+BENCHMARK_TEMPLATE(ParallelBM, CNDC<true>)
 ->ThreadRange(1, maxThreads)->Apply(shortSequence);
 
 BENCHMARK_MAIN();
