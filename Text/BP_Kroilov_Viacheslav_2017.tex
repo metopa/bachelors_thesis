@@ -11,9 +11,12 @@
 \usepackage[all]{hypcap} % for going to the top of an image when a figure reference is clicked
 \usepackage[numbers]{natbib}
 \usepackage{listings} % for the source code
-
+\usepackage[outputdir=./pdf]{minted} % for the source code
+\usepackage{url}
+\usepackage{enumitem}
 \usepackage{xspace}
 \usepackage{cleveref}
+
 
 
 \newcommand{\libname}[1]{\textsc{\mbox#1}\xspace}
@@ -91,6 +94,9 @@
 \newcommand{\insertop}{\func{insert}{}\xspace}
 \newcommand{\removeop}{\func{remove}{}\xspace}
 
+\newcommand{\classname}[1]{\texttt{#1}\xspace}
+\newcommand{\pathname}[1]{\path{#1}}
+
 % ==========================================================
 % Adapted from TeX.StackExchange.com user Juan A. Navarro's
 % solution for itemize as seen at
@@ -113,8 +119,10 @@
 
 \setlength{\parindent}{0em}
 \setlength{\parskip}{1em}
+\usemintedstyle{vs}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\listoflistings
 
 \setsecnumdepth{part}
     \chapter{Introduction}
@@ -136,7 +144,7 @@
 
     \chapter{Library implementation}
     \label{ch:impl}
-    %\input{tex/4_Library_implementation}
+    \input{tex/4_Library_implementation}
 
     \chapter{Performance evaluation}
     \label{ch:bench}

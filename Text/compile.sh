@@ -10,12 +10,13 @@ PDF_FILE=${OUT_DIR}/${TEX_FILE/tex/pdf}
 LOG_FILE=${OUT_DIR}/compilation.log
 
 mkdir -p ${OUT_DIR}
-pdflatex -halt-on-error -file-line-error -interaction=nonstopmode -output-directory=${OUT_DIR} \
+rm ${OUT_DIR}/* 2>/dev/null
+pdflatex -halt-on-error -file-line-error -shell-escape -interaction=nonstopmode -output-directory=${OUT_DIR} \
          ${TEX_FILE} > ${LOG_FILE} && \
 bibtex -terse -min-crossrefs=1 ${AUX_FILE} && \
-pdflatex -halt-on-error -file-line-error -interaction=nonstopmode -output-directory=${OUT_DIR} \
+pdflatex -halt-on-error -file-line-error -shell-escape -interaction=nonstopmode -output-directory=${OUT_DIR} \
          ${TEX_FILE} > ${LOG_FILE} && \
-pdflatex -halt-on-error -file-line-error -interaction=nonstopmode -output-directory=${OUT_DIR} \
+pdflatex -halt-on-error -file-line-error -shell-escape -interaction=nonstopmode -output-directory=${OUT_DIR} \
          ${TEX_FILE} > ${LOG_FILE}
 
 
@@ -24,7 +25,7 @@ if [ $? -eq 0 ]; then
     echo -n "Successfully Compiled ${PDF_FILE}"
     xdg-open ${PDF_FILE}
 else
-    head -n -10 ${LOG_FILE} | sed "s/^\..*\/\([^\/]*\.tex:[0-9]*\):/\.(\1)/"
+    tail -20 $LOG_FILE | sed "s/^\..*\/\([^\/]*\.tex:[0-9]*\):/\.(\1)/"
     echo -e "${RED}"
     echo -n "Compilation Error ${TEX_FILE}"
 fi

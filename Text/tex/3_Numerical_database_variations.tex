@@ -1,6 +1,7 @@
 \section{Priority}
 
 \subsection{Improved WST Priority}
+\label{sssec:improved_wst}
 The weighted search tree priority representation, discussed in \cref{sec:wst_priority}, has some drawbacks that probably were irrelevant at the time when \cite{park90} was presented. The problem is that keeping the hit counter in only 24 bits (even more, the hit counter multiplied by the base priority) would result in an integer overflow sooner or later. For example, imagine the case when the base priority is the maximum possible~-- 255. Binary representation is \nsnum{000000FF}{16}. After 65793 hits, the priority will have its maximum value~-- \nsnum{FFFFFFFF}{16}. If another hit counter adjustment is made an overflow occurs, producing the value \nsnum{000000FE}{16}. Therefore, the maximum priority becomes very low, and even the base priority has been changed. There are at least two possible solutions:
 \begin{description}
 \item[Use larger counter]-- store the WST priority in a 64-bit integer. Then an overflow of a 56-bit counter is unlikely, not to say impossible~-- even with the maximal priority, an overflow will occur only after the 282578800148737th insertion. It would take days to make so many adjustments, even if the processor performs only these adjustments and nothing else (which is at least impractical). Nevertheless, a certain disadvantage is that the memory overhead per each node is increased by 4 bytes.
@@ -46,10 +47,11 @@ The canonical weighted search tree always chooses the node with the minimum prio
 The Least-Recently-Used policy tracks every access to the items and sorts them by access order. Then it evicts the item that was not accessed for the longest time. The common implementation is based on a doubly-linked list. When an item is accessed its corresponding node in the LRU list is moved into the head of the list. Then the least-recently-used node is the one in the tail of the list. When a new item is added, it is inserted in the head of the LRU list.
 
 \subsection{LFU Policy}
+\label{sssec:lfu}
 The Least-Recently-Used item policy fulfills the same purpose as the LRU policy. But when it decides which item should be evicted, the access frequency is also taken in account in addition to the last access time (LRU uses only the latter property).
 
 \subsection{Splay Policy}
-\label{sec:spolicy}
+\label{sssec:spolicy}
 A splay tree tends to keep the most frequently accessed items near its root. By relying on this property, it is possible to eliminate a separate data structure that manages item priorities. When an eviction is performed, one of the bottom nodes is chosen for eviction. Even though this strategy may not choose an optimal node every time, it is expected to perform effectively on average. This approach yields the lowest memory overhead per node among all tested data structures.
 
 
