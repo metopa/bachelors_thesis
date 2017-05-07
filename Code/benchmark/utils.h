@@ -53,6 +53,10 @@ struct Fibonacci {
 };
 
 
+size_t iterCnt(int area, size_t mem) {
+	return mem * 400 * 100 / area + 1500;
+}
+
 double computeHitRate(size_t total_retrievals,
 					  size_t user_func_calls,
 					  double area_under_curve) {

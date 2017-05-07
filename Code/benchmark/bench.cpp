@@ -112,95 +112,137 @@ void ParallelBM(benchmark::State& state) {
 constexpr int maxKB = 100 * 1024;
 constexpr int maxThreads = 2;
 
-void shortSequence(benchmark::internal::Benchmark* b) {
-	constexpr int min_memory = 1;
-	constexpr int max_memory = PARALLEL_ONLY ? 256 : 256;
-	constexpr int mem_multiply = 4;
-
-	std::vector<int> areas = {85};
-	std::vector<std::pair<int, int>> fib_args = {{30, 35}};
-	std::vector<int> slide = {1};
-
-	b->ArgNames({"fib_min", "fib_max", "memory", "area", "mean_varying_rate"});
-
-	for (auto slide_speed : slide)
-		for (auto fib_arg : fib_args)
-			for (auto area : areas)
-				for (int mem = min_memory; mem <= max_memory; mem *= mem_multiply) {
-					b->Iterations(mem * 250 * 100 / area + 5000)->
-							Args({fib_arg.first, fib_arg.second,
-								  std::min(mem, max_memory), area, slide_speed});
-				}
-}
-
-void longSequence(benchmark::internal::Benchmark* b) {
+void memSequence(benchmark::internal::Benchmark* b) {
 	int min_memory = 1;
-	int max_memory = maxKB;
+	int max_memory = 64;
 	constexpr int mem_multiply = 4;
 
-	std::vector<int> areas = {60, 95};
-	std::vector<std::pair<int, int>> fib_args = {{28, 35}};
-	std::vector<int> slide = {0, 10};
+	int arg_min = 25;
+	int arg_max = 35;
 
-	b->ArgNames({"fib_min", "fib_max", "memory", "area", "mean_varying_rate"});
+	int default_area = 85;
 
-	for (auto& slide_speed : slide)
-		for (auto& fib_arg : fib_args)
-			for (auto& area : areas)
-				for (int mem = min_memory;; mem *= mem_multiply) {
-					b->Iterations(mem * 1024 * 10 * 100 / area)->Args({fib_arg.first, fib_arg.second,
-																	   std::min(mem, max_memory), area, slide_speed});
-					if (mem >= max_memory)
-						break;
-				}
+	int default_momentum = 1;
+
+	b->ArgNames({"fib_min", "fib_max", "memory", "area", "mean_momentum"});
+
+	for (int mem = min_memory; mem <= max_memory; mem *= mem_multiply)
+		b->Iterations(iterCnt(default_area, mem))
+				->Args({arg_min, arg_max, mem,
+						default_area, 0});
+	for (int mem = min_memory; mem <= max_memory; mem *= mem_multiply)
+		b->Iterations(iterCnt(default_area, mem))
+				->Args({arg_min, arg_max, mem,
+						default_area, default_momentum});
+
 }
 
-BENCHMARK_TEMPLATE(BM, DummyContainer)->Iterations(2000)->Args({30, 35, 100, 50, 0});
+void memSequencePlus(benchmark::internal::Benchmark* b) {
+	int min_memory = 256;
+	int max_memory = 1024 * 4;
+	constexpr int mem_multiply = 4;
+
+	int arg_min = 25;
+	int arg_max = 35;
+
+	int default_area = 85;
+	int default_momentum = 1;
+
+
+	b->ArgNames({"fib_min", "fib_max", "memory", "area", "mean_momentum"});
+
+	for (int mem = min_memory; mem <= max_memory; mem *= mem_multiply)
+		b->Iterations(iterCnt(default_area, mem) / 2)
+				->Args({arg_min, arg_max, mem,
+						default_area, 0});
+	for (int mem = min_memory; mem <= max_memory; mem *= mem_multiply)
+		b->Iterations(iterCnt(default_area, mem) / 2)
+				->Args({arg_min, arg_max, mem,
+						default_area, default_momentum});
+}
+
+void areaSequence(benchmark::internal::Benchmark* b) {
+	int default_memory = 64;
+
+	int arg_min = 25;
+	int arg_max = 35;
+	int default_momentum = 1;
+
+	for (int area = 45; area <= 95; area += 10)
+		b->Iterations(iterCnt(area, default_memory))
+				->Args({arg_min, arg_max, default_memory,
+						area, default_momentum});
+}
+
+void momentumSequence(benchmark::internal::Benchmark* b) {
+	int default_memory = 64;
+	int arg_min = 25;
+	int arg_max = 35;
+	int default_area = 85;
+
+	b->ArgNames({"fib_min", "fib_max", "memory", "area", "mean_momentum"});
+
+	b->Iterations(iterCnt(default_area, default_memory))
+			->Args({arg_min, arg_max, default_memory,
+					default_area, 0});
+	for (int momentum = 1; momentum <= 1000; momentum *= 10)
+		b->Iterations(iterCnt(default_area, default_memory))
+				->Args({arg_min, arg_max, default_memory,
+						default_area, momentum});
+}
+
+void fullSequence(benchmark::internal::Benchmark* b) {
+	memSequence(b);
+	areaSequence(b);
+	momentumSequence(b);
+}
+
+BENCHMARK_TEMPLATE(BM, DummyContainer)->Iterations(2000)->Args({25, 35, 100, 50, 0});
 
 #if !PARALLEL_ONLY
-BENCHMARK_TEMPLATE(BM, WeightedSearchTree<0>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, WeightedSearchTree<1>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, WeightedSearchTree<2>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, WeightedSearchTree<4>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, WeightedSearchTree<16>)->Apply(shortSequence);
+BENCHMARK_TEMPLATE(BM, WeightedSearchTree<0>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, WeightedSearchTree<1>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, WeightedSearchTree<2>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, WeightedSearchTree<4>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, WeightedSearchTree<16>)->Apply(fullSequence);
 
 
-BENCHMARK_TEMPLATE(BM, PriorityHashtable<0>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, PriorityHashtable<1>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, PriorityHashtable<2>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, PriorityHashtable<4>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, PriorityHashtable<16>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, LruHashtable<>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, LfuHashtable<>)->Apply(shortSequence);
+BENCHMARK_TEMPLATE(BM, PriorityHashtable<0>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, PriorityHashtable<1>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, PriorityHashtable<2>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, PriorityHashtable<4>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, PriorityHashtable<16>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, LruHashtable<>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, LfuHashtable<>)->Apply(fullSequence);
 
-BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<CanonicalSplayStrategy>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<AccessCountSplayStrategy>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<WstSplayStrategy<1>>)->Apply(shortSequence);
+BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<CanonicalSplayStrategy>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<AccessCountSplayStrategy>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<WstSplayStrategy<1>>)->Apply(fullSequence);
 
-BENCHMARK_TEMPLATE(BM, LruSplayTree<CanonicalSplayStrategy>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, LruSplayTree<AccessCountSplayStrategy>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, LruSplayTree<WstSplayStrategy<1>>)->Apply(shortSequence);
+BENCHMARK_TEMPLATE(BM, LruSplayTree<CanonicalSplayStrategy>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, LruSplayTree<AccessCountSplayStrategy>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, LruSplayTree<WstSplayStrategy<1>>)->Apply(fullSequence);
 
-BENCHMARK_TEMPLATE(BM, LfuSplayTree<CanonicalSplayStrategy>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, LfuSplayTree<AccessCountSplayStrategy>)->Apply(shortSequence);
-BENCHMARK_TEMPLATE(BM, LfuSplayTree<WstSplayStrategy<1>>)->Apply(shortSequence);
+BENCHMARK_TEMPLATE(BM, LfuSplayTree<CanonicalSplayStrategy>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, LfuSplayTree<AccessCountSplayStrategy>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, LfuSplayTree<WstSplayStrategy<1>>)->Apply(fullSequence);
 
 #endif
 
 BENCHMARK_TEMPLATE(ParallelBM, CoarseLockAdapter<WeightedSearchTree<0>>)
-->ThreadRange(1, maxThreads)->Apply(shortSequence);
+->ThreadRange(1, maxThreads)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(ParallelBM, CoarseLockAdapter<BottomNodeSplayTree<CanonicalSplayStrategy>>)
-->ThreadRange(1, maxThreads)->Apply(shortSequence);
+->ThreadRange(1, maxThreads)->Apply(fullSequence);
 
 BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<WeightedSearchTree<0>, maxThreads>)
-->ThreadRange(1, maxThreads)->Apply(shortSequence);
+->ThreadRange(1, maxThreads)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<BottomNodeSplayTree<CanonicalSplayStrategy>, maxThreads>)
-->ThreadRange(1, maxThreads)->Apply(shortSequence);
+->ThreadRange(1, maxThreads)->Apply(fullSequence);
 
 
 BENCHMARK_TEMPLATE(ParallelBM, CNDC<false>)
-->ThreadRange(1, maxThreads)->Apply(shortSequence);
+->ThreadRange(1, maxThreads)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(ParallelBM, CNDC<true>)
-->ThreadRange(1, maxThreads)->Apply(shortSequence);
+->ThreadRange(1, maxThreads)->Apply(fullSequence);
 
 BENCHMARK_MAIN();
