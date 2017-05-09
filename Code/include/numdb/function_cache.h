@@ -105,7 +105,7 @@ namespace numdb {
 		}
 
 		container_t container_;
-		utility::RatioPriorityGenerator<256> priority_generator_;
+		utility::RatioPriorityGenerator<container_t::isThreadsafe(), 256> priority_generator_;
 		UserFuncT user_func_;
 		EventCounterT event_counter_;
 	};

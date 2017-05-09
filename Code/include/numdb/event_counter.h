@@ -18,7 +18,7 @@ namespace numdb {
 			void invokeUserFunc() {}
 		};
 
-		struct BasicEventCounter {
+		struct AtomicEventCounter {
 			std::atomic<uint64_t> total_retrievals = {0};
 			std::atomic<uint64_t> user_func_invocations = {0};
 
@@ -34,7 +34,7 @@ namespace numdb {
 				return 1 - static_cast<double>(user_func_invocations) / total_retrievals;
 			}
 
-			friend std::ostream& operator <<(std::ostream& out, const BasicEventCounter& ec) {
+			friend std::ostream& operator <<(std::ostream& out, const AtomicEventCounter& ec) {
 				return out << "Total: " << ec.total_retrievals << std::endl
 						   << "User func calls: " << ec.user_func_invocations << std::endl
 						   << "Cache efficiency: " << ec.cacheEfficiency() << std::endl;
