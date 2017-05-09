@@ -3,7 +3,7 @@
 \usepackage[utf8]{inputenc} % LaTeX source encoded as UTF-8
 \usepackage{graphicx} % graphics files inclusion
 \usepackage{dirtree} % directory tree visualisation
-\usepackage[printonlyused]{acronym} % acronims
+\usepackage[]{acronym} % acronims
 \usepackage{float} % floats
 \usepackage{indentfirst} % indent in first paragraph
 \raggedbottom
@@ -16,6 +16,9 @@
 \usepackage{enumitem}
 \usepackage{xspace}
 \usepackage{cleveref}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{booktabs}
 
 \newcommand{\libname}[1]{\textsc{\mbox#1}\xspace}
 \newcommand{\numdbname}{\libname{numdb}}
@@ -38,9 +41,9 @@
 \authorWithDegrees{Viacheslav Kroilov} %author's name with academic degrees
 \supervisor{doc. Ing. Ivan {\v S}ime{\v c}ek, Ph.D.}
 \acknowledgements{THANKS (remove entirely in case you do not with to thank anyone)}
-\abstractEN{A numerical database speeds up computations by memoizing pairs of an argument and the result, computed by a function with the argument. A canonical numerical database is based on the weighted search tree~-- a combination of the AVL tree and the binary heap. An application of alternative data structures, namely hash table and splay tree, is discussed in this thesis. In addition, a new data structure~-- \cndcname{}~-- is introduced. It is similar to the weighted search tree, but all operations are declared as thread-safe.
+\abstractEN{Numerical databases speed up computations by memoizing pairs of an argument and the result, computed by a function with the argument. The canonical numerical database is based on the weighted search tree~-- a combination of the AVL tree and the binary heap. The application of alternative data structures, namely the hash table and the splay tree, is discussed in this thesis. In addition, a new data structure~-- \cndcname{}~-- is introduced. It is similar to the weighted search tree, but all operations are declared as thread-safe.
 
-            All mentioned above data structures are implemented in the C++ programming language as a programming library, called \numdbname. The performance of each data structure is measured and the results are compared and discussed.
+            Data structures, mentioned above, are implemented in the C++ programming language as a programming library, called \numdbname. The performance of each data structure is measured and the results are compared and discussed.
 }
 \abstractCS{Numerická databáze zrychluje výpočet ukládáním mezivýsledků do pamětí.
             Kanonická implementace numerické databáze je založená na ohodnoceném
@@ -96,6 +99,8 @@
 \newcommand{\pathname}[1]{\path{#1}}
 
 \mathchardef\mhyphen="2D
+
+%\pgfplotsset{width=6.5cm}
 
 % ==========================================================
 % Adapted from TeX.StackExchange.com user Juan A. Navarro's
@@ -161,37 +166,43 @@
 \setsecnumdepth{all}
 \appendix
 
-\chapter{Acronyms}
-\begin{acronym}
-	\acro{$N$}{Application Programming Interface}
-	\acro{$T$}{Application Programming Interface}
-	\acro{$K$}{Application Programming Interface}
-	\acro{$BST$}{Application Programming Interface}
-	\acro{$R$}{Application Programming Interface}
-	\acro{$F$}{Application Programming Interface}
-	\acro{$left$}{Application Programming Interface}
-	\acro{$right$}{Application Programming Interface}
-	\acro{$key$}{Application Programming Interface}
-	\acro{$height$}{Application Programming Interface}
-	\acro{$size$}{Application Programming Interface}
-	\acro{$priority$}{Application Programming Interface}
+\chapter{Benchmark results}
+\input{tex/X_Appendix_1.tex}
 
+\chapter{Acronyms}
+
+\begin{acronym}
+	\acro{BST}{Binary Search Tree}
+	\acro{$T$}{A binary tree}
+	\acro{$N$}{A node in a binary tree or a hash table}
+	\acro{$K$}{A key, used for the lookup in a container}
+	\acro{$F$}{User-provided function that accepts $K$ as an argument}
+	\acro{$R$}{A result, that is calculated from $K$ by $F$}
 \end{acronym}
 
 
 \chapter{Contents of enclosed CD}
-
-%change appropriately
-
 \dirtree{%
-    .1 readme.txt\DTcomment{the file with CD contents description}.
-    .1 exe\DTcomment{the directory with executables}.
-    .1 src\DTcomment{the directory of source codes}.
-    .2 wbdcm\DTcomment{implementation sources}.
-    .2 thesis\DTcomment{the directory of \LaTeX{} source codes of the thesis}.
-    .1 text\DTcomment{the thesis text directory}.
-    .2 thesis.pdf\DTcomment{the thesis text in PDF format}.
-    .2 thesis.ps\DTcomment{the thesis text in PS format}.
-}
-
+    .1 /.
+    .2 Code\DTcomment{\numdbname project folder}.
+      .3 3rdparty\DTcomment{\numdbname additional libraries}.
+        .4 function\_traits.
+        .4 google\_benchmark.
+        .4 gtest.
+        .4 murmurhash2functor.
+      .3 benchmark\DTcomment{\numdbname benchmark source files}.
+      .3 include\DTcomment{\numdbname library header files}.
+        .4 numdb.
+          .5 cndc.
+          .5 concurrent\_adapters.
+          .5 hash\_table.
+          .5 splay\_tree.
+          .5 wst.
+      .3 lib\DTcomment{\numdbname library source code files}.
+      .3 test\DTcomment{\numdbname unit tests}.
+    .2 Text\DTcomment{this thesis \LaTeX{} source code folder}.
+      .3 pdf.
+        .4 BP\_Kroilov\_Viacheslav\_2017{.}pdf\DTcomment{this thesis in PDF format}.
+      .3 tex\DTcomment{\LaTeX{} source code}.
+    }
 \end{document}
