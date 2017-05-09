@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <algorithm>
+#include <mutex>
 
 #ifndef NUMDB_INITIAL_PRIORITY_GENERATOR_H
 #define NUMDB_INITIAL_PRIORITY_GENERATOR_H
@@ -59,15 +60,21 @@ namespace numdb {
 		};
 
 		template <
+				bool ThreadSafe,
 				uint64_t MaxPriority,
 				uint64_t InitialLearningIterations = 100,
 				uint64_t IterationsUntilUpdate = 10240>
 		class RatioPriorityGenerator {
-			uint64_t sum_ = 0;
-			uint64_t count_ = 0;
+			using counter_t = std::conditional_t<false, std::atomic<uint64_t>, uint64_t>;
+			counter_t sum_ = 0;
+			counter_t count_ = 0;
+			std::mutex mutex_;
 
 		  public:
 			uint64_t calculatePriority(uint64_t duration) {
+				std::unique_lock<std::mutex> lg;
+				if (ThreadSafe)
+					lg = std::unique_lock<std::mutex>(mutex_);
 				sum_ += duration;
 				count_++;
 
