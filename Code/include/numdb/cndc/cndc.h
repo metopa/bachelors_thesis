@@ -37,7 +37,7 @@ namespace numdb {
 			using lock_guard_t = std::unique_lock<std::mutex>;
 			using backoff_t = utility::ExpBackoff;
 
-			//private: //FIXME
+		  private:
 			struct TableNode {
 				void extract(TableNode** this_node_ref) {
 					assert(this_node_ref != nullptr);
@@ -53,6 +53,7 @@ namespace numdb {
 
 				TableNode* next_;
 				std::atomic<idx_t> heap_node_;
+				std::atomic<uint32_t> version_;
 				key_t key_;
 				value_t value_;
 			};
@@ -60,7 +61,6 @@ namespace numdb {
 			struct HeapNode {
 				TableNode* table_node_ = nullptr;
 				priority_t priority_;
-				bool up_ = false; //TODO Embed into priority or pointer
 
 				bool operator <(const HeapNode& other) const {
 					return priority_ < other.priority_;
@@ -70,6 +70,9 @@ namespace numdb {
 			struct LockedHeapNode {
 				idx_t idx;
 				lock_guard_t lg;
+			};
+
+			struct VersionChangedException {
 			};
 
 		  public:
@@ -89,9 +92,7 @@ namespace numdb {
 			}
 
 			CNDC(size_t available_memory, double load_factor = 2) :
-					CNDC(
-							maxElemCountForCapacity(available_memory, load_factor),
-							load_factor, 0) {}
+					CNDC(maxElemCountForCapacity(available_memory, load_factor), load_factor, 0) {}
 
 		  private:
 			CNDC(size_t element_count, double load_factor, char dummy) :
@@ -99,7 +100,6 @@ namespace numdb {
 					buckets_(static_cast<size_t>(element_count / load_factor), nullptr),
 					bucket_locks_(buckets_.size()), table_nodes_(element_count),
 					heap_(element_count), heap_locks_(element_count) {
-				;
 				if (buckets_.size() == 0)
 					throw std::invalid_argument("Can't construct fixed hashtable: insufficient memory");
 
@@ -150,8 +150,12 @@ namespace numdb {
 						break;
 					if (key == (*node_ref)->key_) {
 						TableNode* found_node = *node_ref;
-						heapIncreasePriority(found_node);
-						return {found_node->value_};
+						value_t value = found_node->value_;
+						uint32_t version = found_node->version_;
+						lg.unlock();
+
+						heapIncreasePriority(found_node, version);
+						return {value};
 					}
 					node_ref = &((*node_ref)->next_);
 				}
@@ -172,7 +176,11 @@ namespace numdb {
 				lock_guard_t lg((bucket_locks_[bucket_nr]));
 				while (*node_ref) {
 					if (key == (*node_ref)->key_) {
-						heapIncreasePriority(*node_ref);
+						TableNode* found_node = *node_ref;
+						uint32_t version = found_node->version_;
+						lg.unlock();
+
+						heapIncreasePriority(found_node, version);
 						return false;
 					}
 					if (key < (*node_ref)->key_)
@@ -200,7 +208,7 @@ namespace numdb {
 				TableNode* candidate = heapExtractMin();
 				if (!candidate)
 					return nullptr;
-				//FIXME Race condition
+
 				size_t bucket_nr = getBucket(candidate->key_);
 				TableNode** node_ref = &buckets_[bucket_nr];
 				lock_guard_t lg((bucket_locks_[bucket_nr]));
@@ -212,6 +220,7 @@ namespace numdb {
 						TableNode* found_node = *node_ref;
 						assert(found_node == candidate);
 						found_node->extract(node_ref);
+						found_node->version_++;
 						return found_node;
 					}
 					node_ref = &(*node_ref)->next_;
@@ -264,16 +273,17 @@ namespace numdb {
 					return nullptr;
 
 				TableNode* evicted_node = heap_[0].table_node_;
+				heap_[0].table_node_ = nullptr;
 
 				if (count_ == 1) {
 					count_ = 0;
-
 					return evicted_node;
 				}
 
 				{
 					lock_guard_t lg2((heap_locks_[count_ - 1]));
-					swapHeapNodes(0, count_ - 1);
+					std::swap(heap_[0], heap_[(count_ - 1)]);
+					heap_[0].table_node_->heap_node_ = 0;
 					count_--;
 				}
 				if (count_ > 1) {
@@ -286,49 +296,58 @@ namespace numdb {
 				assert(tnode);
 				lock_guard_t lg1((heap_locks_[0]));
 				assert(count_ < max_count_);
+				uint32_t version = tnode->version_++;
 				tnode->heap_node_ = count_.load();
+
 				if (count_ == 0) {
 					heap_[count_].table_node_ = tnode;
 					heap_[count_].priority_ = {};
-					heap_[count_].up_ = false;
 					count_ = 1;
-					return;
-				}
+				} else {
+					lock_guard_t lg2((heap_locks_[count_]));
+					heap_[count_].table_node_ = tnode;
+					heap_[count_].priority_ = {};
 
-				lock_guard_t lg2((heap_locks_[count_]));
-				heap_[count_].table_node_ = tnode;
-				heap_[count_].priority_ = {};
-				heap_[count_].up_ = true;
-				count_++;
-				lg1.unlock();
-				bottomUpHeapify(tnode, std::move(lg2));
+					count_++;
+					lg1.unlock();
+					bucket_lock.unlock();
+					bottomUpHeapify(tnode, std::move(lg2), version);
+				}
 			}
 
-			void heapIncreasePriority(TableNode* tnode) {
+			void heapIncreasePriority(TableNode* tnode, uint32_t version) {
 				assert(tnode);
-				while (1) {
-					auto lg = heapLockNode(tnode);
-					assert(lg.owns_lock());
-					idx_t hnode = tnode->heap_node_;
-					if (heap_[hnode].up_) //TODO Add backoff?
-						continue;
-					heap_[hnode].priority_.access();
-					topDownHeapify(hnode, std::move(lg));
-					return;
+				backoff_t backoff;
+				try {
+					while (1) {
+						auto lg = heapLockNode(tnode, version);
+
+						idx_t hnode = tnode->heap_node_;
+						heap_[hnode].priority_.access();
+						topDownHeapify(hnode, std::move(lg));
+						return;
+					}
 				}
+				catch (VersionChangedException) {}
 			}
 
-			lock_guard_t heapLockNode(TableNode* tnode) {
+			lock_guard_t heapLockNode(TableNode* tnode, uint32_t version) throw(VersionChangedException) {
+				backoff_t backoff;
 				while (true) {
+					if (tnode->version_ != version)
+						throw VersionChangedException{};
 					idx_t hnode = tnode->heap_node_;
-					//hnode == -1?
 					lock_guard_t lg(heap_locks_[hnode], std::try_to_lock);
 					if (lg.owns_lock()) {
+						if (tnode->version_ != version || heap_[hnode].table_node_ == nullptr)
+							throw VersionChangedException{};
 						if (heap_[hnode].table_node_ == tnode) {
 							assert(hnode == tnode->heap_node_);
 							return std::move(lg);
 						}
 					}
+					if (UseBackoff)
+						backoff();
 				}
 			}
 
@@ -361,7 +380,7 @@ namespace numdb {
 				}
 			}
 
-			idx_t bottomUpHeapify(TableNode* tnode, lock_guard_t node_lg) {
+			void bottomUpHeapify(TableNode* tnode, lock_guard_t node_lg, uint32_t version) {
 				assert(node_lg.owns_lock());
 				idx_t node = tnode->heap_node_;
 				backoff_t backoff;
@@ -371,24 +390,21 @@ namespace numdb {
 						break;
 					lock_guard_t parent_lg(heap_locks_[parent], std::try_to_lock);
 					if (parent_lg.owns_lock()) {
-						if (!heap_[parent].up_) {
-							if (heap_[node].priority_ < heap_[parent].priority_)
-								swapHeapNodes(node, parent);
-							else
-								break;
-						} else {
-							parent_lg.unlock();
-							if (UseBackoff)
-								backoff();
-						}
+						if (heap_[node].priority_ < heap_[parent].priority_)
+							swapHeapNodes(node, parent);
+						else
+							break;
 					}
 					node_lg.unlock();
-					node_lg = parent_lg.owns_lock() ? std::move(parent_lg) : heapLockNode(tnode);
 					node = tnode->heap_node_;
+					try {
+						node_lg = parent_lg.owns_lock() ? std::move(parent_lg) :
+								  heapLockNode(tnode, version);
+					}
+					catch (VersionChangedException) {
+						return;
+					}
 				}
-
-				heap_[node].up_ = false;
-				return node;
 			}
 
 			idx_t heapParent(idx_t i) {
@@ -430,8 +446,8 @@ namespace numdb {
 			}
 
 
-			const size_t max_count_;
-			const double load_factor_;
+			size_t max_count_;
+			double load_factor_;
 			std::atomic<idx_t> count_;
 			TableNode* disposed_nodes_head_;
 			std::mutex disposed_nodes_lock_;
