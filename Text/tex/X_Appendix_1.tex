@@ -1,4 +1,17 @@
-%mem, rate = 0
+\section{Container reference}
+\begin{description}
+\item[Baseline] The performance of the user function itself without any numerical database.
+\item[WST, aging = 0] The original weighted search tree, as described in \cite{park94}.
+\item[WST, aging = $N$] Weighted search tree with aging mechanism. For every traversed node, its priority is decreased by $N \times 256$
+\item[Hash table, Binary heap, aging = $N$] The container, very similar to the WST, but with a hash table in place of a BST. $N$ parameter has the same meaning as for the WST; 0 value means that no priority aging is performed.
+\item[Hash table, LRU] The hash table, that uses LRU strategy for item eviction.
+\item[Hash table, LFU] The hash table, that uses LFU strategy for item eviction.
+
+\item[Splay tree, Splay policy, canonical] The splay tree with the splay policy (as described in \cref{sssec:spolicy}). ``Canonical'' stands for the splaying strategy~-- the node is always splayed up to the root\cite{splay_tree}.
+\item[Splay tree, Splay policy, partial] The splay tree with the splay policy (as described in \cref{sssec:spolicy}). ``Partial'' stands for the splaying strategy~-- each node has the access counter and it is splayed until its counter value is less than that of its parent the node. This approach is known as the \emph{partial splaying}\cite{partial_splaying}.
+\item[Splay tree, LRU, canonical] The splay tree with the LRU policy.
+\item[Splay tree, LFU, canonical] The splay tree with the LFU policy.
+\end{description}
 \pagebreak
 
 \begin{tabular}[h]{l r} \toprule
@@ -11,7 +24,7 @@ Mean changing rate & 0 \\ \bottomrule
 
 \begin{table}
 \caption{Variable memory size (static input distribution)}
-\begin{tabular}[]{l  r  r  r } \toprule
+\begin{tabular}[b]{l  r  r  r } \toprule
 Container & \multicolumn{3}{c}{Throughput [op/s]} \\ \cmidrule(r){2-4}
 & 4 KiB & 16 KiB & 64 KiB \\ \midrule
 Baseline & \multicolumn{3}{r}{588}  \\
