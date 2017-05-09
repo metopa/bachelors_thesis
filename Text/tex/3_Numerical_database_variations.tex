@@ -45,6 +45,7 @@ This mechanism may not be effective with the AVL tree because in the AVL tree th
 The canonical weighted search tree always chooses the node with the minimum priority for the deletion. However, it is only one of many possible eviction strategies. Some other strategies are presented in this section. From general ones, like LRU, to those exploiting the lookup data structure internals to find the least valuable item.
 
 \subsection{LRU Policy}
+\label{sssec:lru}
 The Least-Recently-Used policy tracks every access to the items and sorts them by access order. Then it evicts the item that was not accessed for the longest time. The common implementation is based on a doubly-linked list. When an item is accessed its corresponding node in the LRU list is moved into the head of the list. Then the least-recently-used node is the one in the tail of the list. When a new item is added, it is inserted in the head of the LRU list.
 
 \subsection{LFU Policy}
