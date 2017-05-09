@@ -7,6 +7,7 @@
 #include <random>
 #include <memory>
 #include <benchmark/benchmark.h>
+#include <iostream>
 #include "utils.h"
 
 #include "numdb/numdb.h"
@@ -45,7 +46,7 @@ void BM(benchmark::State& state) {
 	std::mt19937 e(r());
 	std::normal_distribution<double> dist(0, sigma);
 
-	FunctionCache<UserFunc, ContainerTypeHolder, utility::BasicEventCounter>
+	FunctionCache<UserFunc, ContainerTypeHolder, utility::AtomicEventCounter>
 			cache(UserFunc(state.range(0), state.range(1)), mem);
 
 
@@ -87,7 +88,7 @@ void ParallelBM(benchmark::State& state) {
 	std::normal_distribution<double> dist(0, sigma);
 
 
-	using cache_t = FunctionCache<UserFunc, ContainerTypeHolder, utility::BasicEventCounter>;
+	using cache_t = FunctionCache<UserFunc, ContainerTypeHolder, utility::AtomicEventCounter>;
 	static std::unique_ptr<cache_t> cache_ptr;
 
 	if (state.thread_index == 0)
@@ -97,6 +98,7 @@ void ParallelBM(benchmark::State& state) {
 		double a = std::round(dist(e) + mean_offset);
 		benchmark::DoNotOptimize((*cache_ptr)(a));
 		mean_offset += mean_delta;
+		//if (state.iterations() % 1000 == 0) std::cerr << state.thread_index << '|';
 	}
 
 	state.SetItemsProcessed(state.iterations());
@@ -106,14 +108,14 @@ void ParallelBM(benchmark::State& state) {
 		state.counters["hr"] = computeHitRate(cache_ptr->eventCounter().total_retrievals,
 											  cache_ptr->eventCounter().user_func_invocations, area);
 		cache_ptr.reset();
+		std::cerr << std::endl;
 	}
 }
 
-constexpr int maxKB = 100 * 1024;
-constexpr int maxThreads = 2;
+constexpr int maxThreads = 16;
 
 void memSequence(benchmark::internal::Benchmark* b) {
-	int min_memory = 1;
+	int min_memory = 4;
 	int max_memory = 64;
 	constexpr int mem_multiply = 4;
 
@@ -197,39 +199,36 @@ void fullSequence(benchmark::internal::Benchmark* b) {
 	momentumSequence(b);
 }
 
-BENCHMARK_TEMPLATE(BM, DummyContainer)->Iterations(2000)->Args({25, 35, 100, 50, 0});
+BENCHMARK_TEMPLATE(BM, DummyContainer)->Iterations(1000)->Args({25, 35, 100, 50, 0});
 
 #if !PARALLEL_ONLY
 BENCHMARK_TEMPLATE(BM, WeightedSearchTree<0>)->Apply(fullSequence);
-BENCHMARK_TEMPLATE(BM, WeightedSearchTree<1>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, WeightedSearchTree<1>)->Apply(fullSequence)->Apply(memSequencePlus);
 BENCHMARK_TEMPLATE(BM, WeightedSearchTree<2>)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(BM, WeightedSearchTree<4>)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(BM, WeightedSearchTree<16>)->Apply(fullSequence);
 
 
 BENCHMARK_TEMPLATE(BM, PriorityHashtable<0>)->Apply(fullSequence);
-BENCHMARK_TEMPLATE(BM, PriorityHashtable<1>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, PriorityHashtable<1>)->Apply(fullSequence)->Apply(memSequencePlus);;
 BENCHMARK_TEMPLATE(BM, PriorityHashtable<2>)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(BM, PriorityHashtable<4>)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(BM, PriorityHashtable<16>)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(BM, LruHashtable<>)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(BM, LfuHashtable<>)->Apply(fullSequence);
 
-BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<CanonicalSplayStrategy>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<CanonicalSplayStrategy>)->Apply(fullSequence)->Apply(memSequencePlus);;
 BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<AccessCountSplayStrategy>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<WstSplayStrategy<0>>)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<WstSplayStrategy<1>>)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(BM, BottomNodeSplayTree<WstSplayStrategy<4>>)->Apply(fullSequence);
 
 BENCHMARK_TEMPLATE(BM, LruSplayTree<CanonicalSplayStrategy>)->Apply(fullSequence);
-BENCHMARK_TEMPLATE(BM, LruSplayTree<AccessCountSplayStrategy>)->Apply(fullSequence);
-BENCHMARK_TEMPLATE(BM, LruSplayTree<WstSplayStrategy<1>>)->Apply(fullSequence);
-
 BENCHMARK_TEMPLATE(BM, LfuSplayTree<CanonicalSplayStrategy>)->Apply(fullSequence);
-BENCHMARK_TEMPLATE(BM, LfuSplayTree<AccessCountSplayStrategy>)->Apply(fullSequence);
-BENCHMARK_TEMPLATE(BM, LfuSplayTree<WstSplayStrategy<1>>)->Apply(fullSequence);
 
 #endif
 
-BENCHMARK_TEMPLATE(ParallelBM, CoarseLockAdapter<WeightedSearchTree<0>>)
+BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<WeightedSearchTree<1>, 4>)
 ->ThreadRange(1, maxThreads)->Apply(fullSequence);
 BENCHMARK_TEMPLATE(ParallelBM, CoarseLockAdapter<BottomNodeSplayTree<CanonicalSplayStrategy>>)
 ->ThreadRange(1, maxThreads)->Apply(fullSequence);
@@ -241,8 +240,7 @@ BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<BottomNodeSplayTree<Cano
 
 
 BENCHMARK_TEMPLATE(ParallelBM, CNDC<false>)
-->ThreadRange(1, maxThreads)->Apply(fullSequence);
-BENCHMARK_TEMPLATE(ParallelBM, CNDC<true>)
-->ThreadRange(1, maxThreads)->Apply(fullSequence);
+->ThreadRange(2, maxThreads)->Apply(memSequence)->Apply(memSequence)->Apply(memSequence)->Apply(memSequence);
+BENCHMARK_TEMPLATE(ParallelBM, CNDC<true>)->ThreadRange(1, maxThreads)->Apply(fullSequence);
 
 BENCHMARK_MAIN();
