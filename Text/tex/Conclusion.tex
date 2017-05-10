@@ -1,1 +1,9 @@
-The aim of this bachelor's thesis is to extend the numerical database concept. At first, the overview of the numerical database original paper\cite{park90} was introduced.
+Numerical database has been introduced in \cite{park90}. Additionally, authors presented a new data structure for the numerical database, called Weighted Search Tree (WST). It uses AVL tree for the fast item lookup and a binary heap for maintaining item priorities.
+
+Other data structures and eviction policies, that could be suitable for the numerical database, have been analyzed in this thesis. Then all mentioned data structures have been implemented in a programming library and their performance has been evaluated and compared.
+\begin{itemize}
+\item Different variations of the splay tree\cite{splay_tree} turned to be impractical for the numerical database.
+\item \emph{Least-recently-used} and \emph{Least-frequently-used} eviction policies did not achieved the same performance as the policy, based on the binary heap. Possibly, because they do not rely on the initial item priority, thus give no preference to items that are accessed rarely but took long to be calculated and therefore must be kept in the database.
+\item The combination of a hash table and a binary heap performs almost as well as WST. Due to the fact that this container is simpler than WST, it is possible to develop the concurrent implementation of the container. Such implementation, called \cndcname, is present in the thesis.
+\end{itemize}
+
