@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.6)
-project(NumDB)
+cmake_minimum_required(VERSION 3.2)
+project(numdb_lib)
 
 set(CMAKE_CXX_STANDARD 14)
 
