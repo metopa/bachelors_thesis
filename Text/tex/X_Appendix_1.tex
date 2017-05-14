@@ -171,3 +171,85 @@ Splay tree, LFU, canonical & 659 & 628 & 418 & 340 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\pagebreak
+
+\begin{tabular}[h]{l r} \toprule
+Parameter & Value \\ \midrule
+Min/Max arg & 25/35 \\
+Memory & \emph{vary} \\
+Area-under-curve & 0.85 \\
+Mean changing rate & 0 \\ \bottomrule
+\end{tabular}
+
+\begin{table}
+\caption{Variable memory size (static input distribution)}
+\begin{tabular}[b]{l  r  r  r } \toprule
+Container & \multicolumn{3}{c}{Throughput [op/s]} \\ \cmidrule(r){2-4}
+& 4 KiB & 16 KiB & 64 KiB \\ \midrule
+Baseline & \multicolumn{3}{r}{428}  \\
+\\
+\cndcname (1) & 809 & 850 & 828 \\
+\cndcname (2) & 1251 & 1465 & 1576 \\
+\cndcname (4) & 2114 & 2505 & 3088 \\
+\cndcname (8) & 3217 & 4332 & 5023 \\
+\cndcname (16) & 5585 & 7823 & 9043 \\
+\cndcname (24) & 9062 & 11178 & 12920 \\
+\\
+Coarse lock + WST (1) & 2262 & 2502 & 2421 \\
+Coarse lock + WST (2) & 1051 & 1280 & 1190 \\
+Coarse lock + WST (4) & 1276 & 1301 & 1232 \\
+Coarse lock + WST (8) & 1340 & 1281 & 1166 \\
+Coarse lock + WST (16) & 1407 & 1392 & 1266 \\
+Coarse lock + WST (24) & 1439 & 1443 & 1236 \\
+\\
+Binning + WST (1) & 1660 & 2302 & 2382 \\
+Binning + WST (2) & 1786 & 2490 & 2864 \\
+Binning + WST (4) & 1668 & 2720 & 3510 \\
+Binning + WST (8) & 2633 & 3517 & 3789 \\
+Binning + WST (16) & 3495 & 5144 & 5305 \\
+Binning + WST (24) & 4295 & 5997 & 6367 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\pagebreak
+
+\begin{tabular}[h]{l r} \toprule
+Parameter & Value \\ \midrule
+Min/Max arg & 25/35 \\
+Memory & \emph{vary} \\
+Area-under-curve & 0.85 \\
+Mean changing rate & $\frac{1}{100 \times thread{\ }count}$ \\ \bottomrule
+\end{tabular}
+
+\begin{table}
+\caption{Variable memory size (time-varying input distribution)}
+\begin{tabular}[b]{l  r  r  r } \toprule
+Container & \multicolumn{3}{c}{Throughput [op/s]} \\ \cmidrule(r){2-4}
+& 4 KiB & 16 KiB & 64 KiB \\ \midrule
+Baseline & \multicolumn{3}{r}{428}  \\
+\\
+\cndcname (1) & 729 & 650 & 734 \\
+\cndcname (2) & 1312 & 1404 & 1524 \\
+\cndcname (4) & 2148 & 2496 & 2984 \\
+\cndcname (8) & 3288 & 3968 & 5120 \\
+\cndcname (16) & 5744 & 6208 & 9040 \\
+\cndcname (24) & 9648 & 10824 & 12408 \\
+\\
+Coarse lock + WST (1) & 1601 & 2155 & 2347 \\
+Coarse lock + WST (2) & 848 & 1328 & 1230 \\
+Coarse lock + WST (4) & 1264 & 1268 & 1200 \\
+Coarse lock + WST (8) & 1320 & 1416 & 1272 \\
+Coarse lock + WST (16) & 1489 & 1392 & 1248 \\
+Coarse lock + WST (24) & 1560 & 1368 & 1272 \\
+\\
+Binning + WST (1) & 1406 & 2052 & 2229 \\
+Binning + WST (2) & 1540 & 2594 & 2794 \\
+Binning + WST (4) & 1748 & 2852 & 3320 \\
+Binning + WST (8) & 2728 & 3664 & 3792 \\
+Binning + WST (16) & 4044 & 5232 & 5248 \\
+Binning + WST (24) & 4296 & 5928 & 6384 \\
+\bottomrule
+\end{tabular}
+\end{table}
