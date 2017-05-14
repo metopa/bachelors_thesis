@@ -1,4 +1,8 @@
-\section{Container reference}
+
+\chapter{Container Reference}
+
+
+\section{Sequential Containers}
 \begin{description}
 \item[Baseline] The performance of the user function itself without any numerical database.
 \item[WST, aging = 0] The original weighted search tree, as described in \cite{park94}.
@@ -12,8 +16,23 @@
 \item[Splay tree, LRU, canonical] The splay tree with the LRU policy.
 \item[Splay tree, LFU, canonical] The splay tree with the LFU policy.
 \end{description}
-\pagebreak
 
+\section{Concurrent Containers}
+
+The number after the container name in \Cref{tbl:c1} and \Cref{tbl:c2} denotes the number of threads.
+
+\begin{description}
+\item[CNDC] The concurrent numerical database container.
+\item[Coarse lock + WST] The sequential WST container, protected by a coarse-grained lock.
+\item[Binning + WST] The sequential WST containers, protected with the binning approach.
+
+\end{description}
+
+
+
+
+\chapter{Benchmark Results}
+\pagebreak
 \begin{tabular}[h]{l r} \toprule
 Parameter & Value \\ \midrule
 Min/Max arg & 25/35 \\
@@ -184,6 +203,7 @@ Mean changing rate & 0 \\ \bottomrule
 
 \begin{table}
 \caption{Variable memory size (static input distribution)}
+\label{tbl:c1}
 \begin{tabular}[b]{l  r  r  r } \toprule
 Container & \multicolumn{3}{c}{Throughput [op/s]} \\ \cmidrule(r){2-4}
 & 4 KiB & 16 KiB & 64 KiB \\ \midrule
@@ -225,6 +245,7 @@ Mean changing rate & $\frac{1}{100 \times thread{\ }count}$ \\ \bottomrule
 
 \begin{table}
 \caption{Variable memory size (time-varying input distribution)}
+\label{tbl:c2}
 \begin{tabular}[b]{l  r  r  r } \toprule
 Container & \multicolumn{3}{c}{Throughput [op/s]} \\ \cmidrule(r){2-4}
 & 4 KiB & 16 KiB & 64 KiB \\ \midrule

@@ -1,4 +1,4 @@
-Some basic programming concepts and data structures are described in this chapter. The rest of the thesis relies on these terms.
+Essential programming concepts and data structures are described in this chapter. The rest of the thesis relies on these terms.
 
 \section{Related Data Structures}
 
@@ -33,10 +33,12 @@ A binary \emph{search} tree (\emph{BST}) is a binary tree that satisfies the fol
 \end{algorithm}
 %\end{float}
 
-The complexity of this search algorithm is~$\mathcal{O}(\func{height}{T})$ (assuming that key comparison takes~$\mathcal{O}(1)$). Furthermore, two remaining operations of a binary search tree, \insertop and \removeop, are implemented in the same fashion, and both of those operations have complexity~$\mathcal{O}(\func{height}{T})$ as well. Their implementation is described in detail in~\cite{sedgewick}.
+The complexity of this search algorithm is~$\mathcal{O}(\func{height}{T})$ (assuming that key comparison takes~$\mathcal{O}(1)$). Furthermore, two remaining operations of a binary search tree, \insertop and \removeop, are implemented in the same fashion, and both of those operations have complexity~$\mathcal{O}(\func{height}{T})$ as well. Their implementation is described in detail in~\cite[p.~327]{sedgewick}.
 
 The tree height can vary between $\mathcal{O}(\func{size}{T})$,
- and $\mathcal{O}(\log(\func{size}{T}))$ in case of a complete binary tree~\cite{complete_bt}, where~$\func{size}{T}$ is the count of nodes in~$T$. BST will maintain optimal operation time only if its structure is close to a complete binary tree and the height is bounded by $c \times \log(\func{size}{T})$, where $c$ is a constant factor greater or equal~$1$. To keep the height logarithmic, even in a worst-case scenario, the \emph{tree rebalancing} has been invented. The idea is that a tree keeps track of its structure and if it is not optimal, then the rebalancing is applied to restore optimal structure. The rebalancing can be achieved with the \emph{tree rotation}\cite{sedgewick}~-- the operation, that swaps a node with its parent in a way, that preserves the $BST$ property.
+ and $\mathcal{O}(\log(\func{size}{T}))$ in case of a complete binary tree~\cite{complete_bt}, where~$\func{size}{T}$ is the count of nodes in~$T$. BST will maintain optimal operation time only if its structure is close to a complete binary tree and the height is bounded by $c \times \log(\func{size}{T})$, where $c$ is a constant factor greater or equal~$1$.
+
+ To keep the height logarithmic, even in a worst-case scenario, the \emph{tree rebalancing} has been invented. The idea is that a tree keeps track of its structure and if it is not optimal, then the rebalancing is applied to restore optimal structure. The rebalancing can be achieved with the \emph{tree rotation}\cite[p.~435]{sedgewick}~-- the operation, that swaps a node with its parent in a way, that preserves the $BST$ property.
 
 
 \subsection{AVL Tree}
@@ -48,7 +50,7 @@ Self-balancing is achieved with the following approach: every node holds the dif
 
 After every operation, that modifies the tree structure~-- \insertop and \removeop, balance factors are updated.
 If at any step the balance factor happens to be $-2$ or $2$, a rotation or a double rotation is applied.
-The rotation adjusts the heights of the left and right subtrees and, consequently, restores the AVL property. The exact AVL tree implementation is described in \cite{sedgewick} and \cite{cormen}.
+The rotation adjusts the heights of the left and right subtrees and, consequently, restores the AVL property. The exact AVL tree implementation is described in \cite[p.~458]{knuth3}.
 
 \subsection{Splay Tree}
 \label{sssec:splay}
@@ -56,9 +58,13 @@ Another approach on tree balancing is presented in the Sleator and Tarjan work\c
 
 Sleator and Tarjan proved that by using this approach, all three basic operations (\findop, \insertop and \removeop) have a logarithmic time bound. Another benefit of splaying is that the most frequently accessed items tend to gather near the root, therefore improving access speed, especially on skewed input sequences~-- the sequences, in which only a small number of items are accessed often while other items occur rarer. This property is exploited in the Splay eviction policy (\Cref{sssec:spolicy}).
 
-Even though splay trees show several interesting theoretical properties, in practice they are outperformed by more conventional BSTs, like AVL or Red-Black tree\cite{splay_overview} (the performance evaluation of \numdbname (\Cref{sec:banalysis}) reaffirms this statement). This is due to the fact that in the splay tree the structure of the tree is altered on every operation, including find operation, while AVL, for instance, modifies the tree only during insertions and removals. The typical use scenario for those data structures is a scenario, where a vast majority of operations is the search operation, while updates are not so often. AVL and Red-Black trees happen to be faster because they execute fewer instructions per find operation. Moreover, they do not make any writes to memory during the lookup, and, as a consequence, there is lower load on the memory bus and the system cache.
+Even though splay trees show several interesting theoretical properties, in practice they are outperformed by more conventional BSTs, like AVL or Red-Black tree\cite{splay_overview} (the performance evaluation of \numdbname (\Cref{sec:banalysis}) reaffirms this statement). This is due to the fact that in the splay tree the structure of the tree is altered on every operation, including find operation, while AVL, for instance, modifies the tree only during insertions and removals.
 
-Further researches on splay trees were focused in the main on how to reduce the number of rotations during splaying. An extensive overview of those optimizations is provided in \cite{splay_overview}. One of the described techniques, the partial splaying is a modification of a conventional splay tree, where every node contains a counter that denotes a total count of accesses to this node. As usual, splaying is performed on every access, but the node is splayed only until its access count is less than the access count of its parent. W. Klostermeyer showed that this modification does not gain any noticeable advantage over a standard splay tree \cite{partial_splaying}. However, partial splaying and other derived modifications can have some interesting properties specifically in application to a numerical database. It will be discussed in \Cref{ch:alt}.
+The typical use scenario for those data structures is a scenario, where a vast majority of operations is the search operation, while updates are not so often. AVL and Red-Black trees happen to be faster because they execute fewer instructions per find operation. Moreover, they do not make any writes to memory during the lookup, and, as a consequence, there is lower load on the memory bus and the system cache.
+
+Further researches on splay trees were focused in the main on how to reduce the number of rotations during splaying. An extensive overview of those optimizations is provided in \cite{splay_overview}. One of the described techniques, the partial splaying is a modification of a conventional splay tree, where every node contains a counter that denotes a total count of accesses to this node. As usual, splaying is performed on every access, but the node is splayed only until its access count is less than the access count of its parent.
+
+W. Klostermeyer showed that this modification does not gain any noticeable advantage over a standard splay tree \cite{partial_splaying}. However, partial splaying and other derived modifications can have some interesting properties specifically in application to a numerical database. It will be discussed in \Cref{ch:alt}.
 
 \subsection{Hash Table}
 
@@ -79,7 +85,7 @@ The approach described above can be generalized on keys of any type $T$. It is a
 \blockitem[Uniformity]-- if used with a uniformly generated random sequence of objects on input, the hash function should produce a uniformly distributed sequence of hashes.
 \end{block-description}
 
-In \cite{sedgewick} Sedgewick and Wayne provide the detailed explanation of collision avoidance strategies as well as general information about hash tables. More information about hash function properties and hash function construction is presented in \cite{knott}.
+In \cite[p.~464]{sedgewick} Sedgewick and Wayne provide the detailed explanation of collision avoidance strategies as well as general information about hash tables. More information about hash function properties and hash function construction is presented in \cite{knott}.
 
 \section{Thread Synchronization}
 

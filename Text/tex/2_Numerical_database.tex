@@ -81,7 +81,7 @@ With a given structure the three basic operations are defined as follows:
 \blockitem[\insertop] consists of two steps:
   \begin{enumerate}
   \item The node is inserted into the binary search tree, and the tree is adjusted using AVL rotations. Obviously, these rotations only change pointers inside nodes. Therefore, they do not affect the binary heap structure.
-  \item The node is inserted into the binary heap. It is done using the \func{heapify}{} operation\cite{sedgewick}. Note that heap adjustments would \emph{reorder nodes} so that binary search tree pointers would point to wrong nodes and the whole \emph{tree would become ill-formed}. To avoid this, special care should be taken when swapping nodes~-- one should also check and adjust tree pointers during swaps.
+  \item The node is inserted into the binary heap. It is done using the \func{heapify}{} operation\cite[p.~346]{sedgewick}. Note that heap adjustments would \emph{reorder nodes} so that binary search tree pointers would point to wrong nodes and the whole \emph{tree would become ill-formed}. To avoid this, special care should be taken when swapping nodes~-- one should also check and adjust tree pointers during swaps.
   \end{enumerate}
 \blockitem[\removeop] is similar to the insertion, but steps are performed in the reverse order~-- at first, the element is removed from the heap, then from the tree. Again, heap adjustments should be performed with respect to the tree structure.
 \end{block-description}
