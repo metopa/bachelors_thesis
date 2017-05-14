@@ -228,19 +228,15 @@ BENCHMARK_TEMPLATE(BM, LfuSplayTree<CanonicalSplayStrategy>)->Apply(fullSequence
 
 #endif
 
-BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<WeightedSearchTree<1>, 4>)
-->ThreadRange(1, maxThreads)->Apply(fullSequence);
-BENCHMARK_TEMPLATE(ParallelBM, CoarseLockAdapter<BottomNodeSplayTree<CanonicalSplayStrategy>>)
+BENCHMARK_TEMPLATE(ParallelBM, CoarseLockAdapter<WeightedSearchTree<1>>)
 ->ThreadRange(1, maxThreads)->Apply(fullSequence);
 
 BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<WeightedSearchTree<0>, maxThreads>)
 ->ThreadRange(1, maxThreads)->Apply(fullSequence);
-BENCHMARK_TEMPLATE(ParallelBM, BinningConcurrentAdapter<BottomNodeSplayTree<CanonicalSplayStrategy>, maxThreads>)
-->ThreadRange(1, maxThreads)->Apply(fullSequence);
-
 
 BENCHMARK_TEMPLATE(ParallelBM, CNDC<false>)
-->ThreadRange(2, maxThreads)->Apply(memSequence)->Apply(memSequence)->Apply(memSequence)->Apply(memSequence);
-BENCHMARK_TEMPLATE(ParallelBM, CNDC<true>)->ThreadRange(1, maxThreads)->Apply(fullSequence);
+->ThreadRange(1, maxThreads)->Apply(fullSequence);
+BENCHMARK_TEMPLATE(ParallelBM, CNDC<true>)
+->ThreadRange(1, maxThreads)->Apply(fullSequence);
 
 BENCHMARK_MAIN();
