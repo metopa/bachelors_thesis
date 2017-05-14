@@ -431,7 +431,8 @@ sp\^ osobom, ktor\'y nezni\v zuje hodnotu Diela (vr\'atane komer\v cn\'eho vyu\v
 		\ClassError{FITthesis}{Czech keywords unspecified}{Specify the keywords in Czech of your thesis using \keywordsCS command.}
 	\fi
 
-	\clearpage
+	\cleardoublepage
+
 
 	\if@abstractendefined
 		\chapterstyletitle{Abstract}\theabstracten
@@ -466,11 +467,14 @@ sp\^ osobom, ktor\'y nezni\v zuje hodnotu Diela (vr\'atane komer\v cn\'eho vyu\v
 	\cleardoublepage
 	\tableofcontents*
 
-	\cleardoublepage
-	\listoffigures*
+	%\cleardoublepage
+	%\listoffigures*
 
 	\cleardoublepage
 	\listoftablescond
+	\listoffigures
+	\listofalgorithms
+	\listoflistings
 
 	\pagestyle{ruled}
 	\mainmatter

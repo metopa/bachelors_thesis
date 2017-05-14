@@ -1,10 +1,12 @@
+This chapter describes the benchmarking program, its input parameters, and the specification of the machines, that were used for the performance evaluation. Additionally, the results of the benchmark runs are analyzed (the results itself are presented in Appendix B) .
+
 \section{Benchmark}
 
-Performance evaluations is done with the benchmark program. For each tested data structure (presented in \cref{ch:numdb} and \cref{ch:alt}), the benchmark runs for a specified amount of time. Then the throughput (operations per second) is calculated as the total count of iterations divided by the total time.
+The performance evaluations is done with the benchmarking program. For each tested data structure (presented in \Cref{ch:numdb} and \Cref{ch:alt}), the benchmark runs for a specified amount of time. Then the throughput (operations per second) is calculated as the total count of iterations divided by the total time.
 
-Instead of separately measuring the performance of every basic operation (\findop, \insertop, \removeop), the overall numeric database performance is evaluated. The numeric database retrieval operation consists of either lookup (in case the item with the specified key is in the database) or lookup, user function invocation, item removal and item insertion. The user function is much slower than the database operations. Therefore, practically the most effective numerical database is the one that calls the user function as rarely as possible.
+Instead of separately measuring the performance of every basic operation (\findop, \insertop, \removeop), the overall numeric database performance is evaluated. The numeric database retrieval operation consists of either lookup (in case the item with the specified key is in the database) or lookup, user function invocation, item removal and item insertion. The user function is much slower than the database operations. Therefore, the most effective numerical database is the one that calls the user function as rarely as possible.
 
-The recursive computation of the $N$th Fibonacci number is chosen as the user function. This algorithm implementation is trivial. Having the exponential time complexity it is extremely inefficient. This is the advantage from the perspective of the benchmark as its task is to simulate a very computational-heavy function. What is more, the time it takes to compute the function can be easily adjusted by the function argument.
+The recursive computation of the $N$th Fibonacci number is chosen as the user function. The algorithm implementation is trivia and, having the exponential time complexity, it is extremely inefficient. This is the advantage from the perspective of the benchmark as its task is to simulate a very computational-heavy function. What is more, the time it takes to compute the function can be easily adjusted by the function argument.
 
 Generally, cache systems perform well only on skewed inputs, when there is a small subset of items that are accessed most of the time while other items are accessed much less often. In this benchmark, a numerical database is tested with a random input sequence that has normal distribution of values. The parameters of the distribution are as follows:
 \begin{description}
@@ -22,7 +24,7 @@ The benchmark has several input parameters:
 \item [minval, maxval]-- the range of values the Fibonacci function is called with. It is defined as a range to simulate functions which execution time depends on its arguments.
 \item [available memory]-- the maximum amount of memory the numerical database uses.
 \item [thread count]-- relevant for concurrent numerical databases. Sets the number of  threads to run in parallel.
-\item[mean changing rate]-- adjusts the rate at which the mean of the distribution is changed. If larger than zero, it simulates input sequences with non-static distribution. Measured as \emph{delta-per-iteration}~-- its value is added to the mean at every iteration, e.g. if the rate is $^1/_{100}$, than after 1000 iteration the mean will move by 10.
+\item[mean changing rate]-- adjusts the rate at which the mean of the distribution is changed. If larger than zero, it simulates input sequences with non-static distribution. It is measured in the \emph{delta-per-iteration} units~-- its value is added to the mean at every iteration, e.g. if the rate is $^1/_{100}$, than after 1000 iteration the mean will move by 10.
 \item[area-under-curve]-- the parameter that affects the standard deviation of the distribution.
 \end{description}
 
@@ -49,9 +51,11 @@ The performance evaluation is performed on these machines:
 \section{Analysis}
 \label{sec:banalysis}
 
-Complete benchmark results are presented in appendix A. In this section they are analyzed.
+Complete benchmark results are presented in Appendix B. In this section they are analyzed.
 
-\begin{center}
+\begin{figure}[h]
+\centering
+\caption{Plot 1}
     \begin{tikzpicture}
       \begin{axis}[
         legend pos=outer north east,
@@ -73,7 +77,10 @@ Complete benchmark results are presented in appendix A. In this section they are
         \legend{Baseline,WST,Hash table,Splay tree}
       \end{axis}
       \end{tikzpicture}
-
+\end{figure}
+\begin{figure}
+\centering
+\caption{Plot 1}
     \begin{tikzpicture}
       \begin{axis}[
         legend pos=outer north east,
@@ -95,7 +102,10 @@ Complete benchmark results are presented in appendix A. In this section they are
         \legend{Baseline,WST,Hash table,Splay tree}
       \end{axis}
     \end{tikzpicture}
-
+\end{figure}
+\begin{figure}
+\centering
+\caption{Plot 1}
     \begin{tikzpicture}
           \begin{axis}[
             legend pos=outer north east,
@@ -117,13 +127,13 @@ Complete benchmark results are presented in appendix A. In this section they are
             \legend{Baseline,WST,Hash table,Splay tree}
           \end{axis}
         \end{tikzpicture}
-\end{center}
+\end{figure}
 
 \begin{description}
 \item[Splay tree]The experimental evaluation proved splay tree ineffeciency. It is outperformed by WST and the hash table on all workloads. Therefore it is not recommended to use it for a numerical database.
-\item[Alternative eviction strategies] LRU and LFU strategies turned out to be impractical from the perspective of numerical databases. The possible reason is that these policies discard initial priority and rely solely on access frequency.
-\item[WST] This data structure proved to be the most effective for a numerical database. However, no concurrent WST implementation is known, so it may be used in sequantial systems only.
-\item[Hash table] In combination with a binary heap this data structure achieves approximately same throughput (about 10\% lower) as WST. The concurrent version of this container has been introduced in this thesis.
+\item[Alternative eviction strategies] LRU and LFU policies turned out to be impractical from the perspective of numerical databases. The possible reason is that these policies discard initial priority and rely solely on access frequency.
+\item[WST] This data structure proved to be the most effective for a numerical database. However, no concurrent WST implementation is known, so it may be used in a sequantial environment only.
+\item[Hash table] In combination with the binary heap this data structure achieves approximately same throughput as WST (about 10\% lower). The concurrent version of this container has been introduced in this thesis (\Cref{sec:cndc}).
 \item[Mean changing rate] With the rate greater or equal 1, the numerical database becomes impractical~-- it achieves only half of the baseline performance.
 \item[Priority aging] Priority aging does not show any advantage over static priority. However, further studies and tests are required here, as the benchmark did not simulate the worst-case input for the static priority scheme.
 \end{description}
