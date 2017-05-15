@@ -19,13 +19,15 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{booktabs}
+\usepackage[section]{placeins}
+
 
 \newcommand{\libname}[1]{\textsc{\mbox#1}\xspace}
 \newcommand{\numdbname}{\libname{numdb}}
 \newcommand{\cndcname}{\libname{cndc}}
 
+\pgfplotsset{compat = 1.3}
 
-\graphicspath{{img/}} % images folder
 
 \department{Department of Theoretical Computer Science}
 \title{Concurrent Memoization System for Large-Scale Scientific Applications}
@@ -34,10 +36,23 @@
 \author{Viacheslav} %author's name without academic degrees
 \authorWithDegrees{Viacheslav Kroilov} %author's name with academic degrees
 \supervisor{doc. Ing. Ivan {\v S}ime{\v c}ek, Ph.D.}
-\acknowledgements{THANKS (remove entirely in case you do not with to thank anyone)}
+\acknowledgements{
+
+\vspace{0mm}
+
+First of all, I would like to thank my parents, Mikhail~Kroilov and Elena~Kroilova, for the constant support they are giving to me.
+
+\vspace{5mm}
+
+Also I would like to thank Valerie Bashkirtseva for the warmth she gives to me and for making the place we are living in the home.
+
+\vspace{5mm}
+
+Finally, but not least, I want to thank my thesis supervisor doc.~Ing.~Ivan {\v S}ime{\v c}ek,~Ph.D. for the valuable feedbacks on preliminary versions of this thesis and for the experience I have gained during the BI-EIA course. }
+
 \abstractEN{Numerical databases speed up computations by memoizing pairs of an argument and the result, computed by a function with the argument. The canonical numerical database is based on the weighted search tree~-- a combination of the AVL tree and the binary heap. The application of alternative data structures, namely the hash table and the splay tree, is discussed in this thesis. In addition, a new data structure~-- \cndcname{}~-- is introduced. It is similar to the weighted search tree, but all operations are declared as thread-safe.
 
-            Data structures, mentioned above, are implemented in the C++ programming language as a programming library, called \numdbname. The performance of each data structure is measured and the results are compared and discussed.
+            Data structures, mentioned above, are implemented in the C++ programming language as a programming library, called \numdbname. The performance of each data structure is measured, and the results are compared and discussed.
 }
 \abstractCS{Numerická databáze zrychluje výpočet ukládáním mezivýsledků do pamětí.
             Kanonická implementace numerické databáze je založená na ohodnoceném

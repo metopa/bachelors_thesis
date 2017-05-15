@@ -8,6 +8,8 @@ Instead of separately measuring the performance of every basic operation (\findo
 
 The recursive computation of the $N$th Fibonacci number is chosen as the user function. The algorithm implementation is trivia and, having the exponential time complexity, it is extremely inefficient. This is the advantage from the perspective of the benchmark as its task is to simulate a very computational-heavy function. What is more, the time it takes to compute the function can be easily adjusted by the function argument.
 
+\pagebreak
+
 Generally, cache systems perform well only on skewed inputs, when there is a small subset of items that are accessed most of the time while other items are accessed much less often. In this benchmark, a numerical database is tested with a random input sequence that has normal distribution of values. The parameters of the distribution are as follows:
 \begin{description}
 \item[Mean $u$] equals zero. The data structures presented in this library are agnostic to the particular argument values and their performance is only affected by the frequency of items in the input sequence. So $u$ can be any number. Zero is any number.
@@ -28,38 +30,38 @@ The benchmark has several input parameters:
 \item[area-under-curve]-- the parameter that affects the standard deviation of the distribution.
 \end{description}
 
-\pagebreak
+\section{Analysis of the Sequential Containers}
 
-The performance evaluation is performed on these machines:
-\begin{itemize}
-\item Single-threaded benchmarks
-    \begin{description}
-    \item [CPU] Intel\textsuperscript{\textregistered{}} Core\textsuperscript{\texttrademark{}} i5-6200U \\
-    2.30GHz (2.80 GHz\footnote{with Intel\textsuperscript{\textregistered{}} Turbo Boost})$ \times$ 2 cores
+\label{sec:secanalysis}
+
+The performance evaluation of the sequential containers has been performed on the following machine:
+
+\begin{description}
+    \item [CPU] Intel\textsuperscript{\textregistered{}} Core\textsuperscript{\texttrademark{}} i5-6200U
+    2.30GHz (2.80 GHz\footnote{with Intel\textsuperscript{\textregistered{}} Turbo Boost Technology})$ \times$ 2 cores
     \item [Memory] 8 GB DDR3 1600 MHz
     \item [OS] Linux\textsuperscript{\textregistered{}} Ubuntu\textsuperscript{\textregistered{}} 16.04 LTS 64-bit
+    \item [Compiler] GCC 5.4, compilation flags: \texttt{-O3 -std=c++14}
     \end{description}
-\item Multi-threaded benchmarks
-    \begin{description}
-    \item [CPU] Intel\textsuperscript{\textregistered{}} Xeon\textsuperscript{\textregistered{}} E5-2650 v4 \\
-    2.20GHz (2.90 GHz\footnotemark[1]) $ \times $ 2 sockets $ \times $ 12 cores
-    \item [Memory] 256 GB DDR4 2400 MHz
-    \item [OS] Linux\textsuperscript{\textregistered{}} Ubuntu\textsuperscript{\textregistered{}} 16.04 LTS 64-bit
-    \end{description}
-\end{itemize}
 
-\section{Analysis}
-\label{sec:banalysis}
+In this chapter there are several graphs (\Cref{f1}, \Cref{f2}, \Cref{f3}), that visualises data presented in \Cref{ch:bresult}. The graphs do not include all the data from the tables, e.g. there is no graph for LRU and LFU based numerical databases; only the most representative candidates have been chosen. The outcomes have confirmed some assumptions, stated in the previous chapters, while refuted others.
 
-Complete benchmark results are presented in Appendix B. In this section they are analyzed.
+The weighted search tree proved to be the most effective container for the numerical database. However, no concurrent WST implementation is known, so its usage is limited to the sequential environment.
+
+The combination of the hash table and the binary heap performs about 10\% slower than WST. However, its advantage over WST is the simpler structure, that made it possible to develop the concurrent version of this container, called \cndcname.
+
+The experimental evaluation proved splay tree inefficiency. It is outperformed by WST and the hash table on all workloads. Therefore it is not recommended to use it for a numerical database.
+
+\emph{Least-recently-used} and \emph{Least-frequently-used} eviction policies do not achieve the same performance as the policy, based on the binary heap. Possibly, because they do not rely on the initial item priority, thus give no preference to items that are rarely accessed  but took long to be calculated and due to that must be kept in the database.
+
+\emph{Priority aging} does not show any advantage over the static priority. However, further studies and tests are required here, as the benchmark does not simulate the worst-case input for the static priority scheme.
 
 \begin{figure}[h]
 \centering
-\caption{Plot 1}
+    \label{f1}
     \begin{tikzpicture}
       \begin{axis}[
         legend pos=outer north east,
-        title={\libname{WST} different aging rate comparison},
         xlabel = Memory {[KiB]},
         ylabel = Throughput {[op/s]},
         xmin = 0.85, xmax = 3.15,
@@ -70,21 +72,23 @@ Complete benchmark results are presented in Appendix B. In this section they are
         ymajorgrids=true,
         grid style=dashed,
       ]
-        \addplot coordinates{(1, 588)(2, 588)(3, 588)};
+        \addplot+[densely dashed, color=black, mark = no] coordinates{(1, 588)(2, 588)(3, 588)};
         \addplot coordinates{(1, 2015)(2, 2411)(3, 2329)};
         \addplot coordinates{(1, 2505)(2, 2258)(3, 2211)};
-        \addplot coordinates{(1, 879)(2, 887)(3, 896)};
+        \addplot+[color=blue] coordinates{(1, 879)(2, 887)(3, 896)};
         \legend{Baseline,WST,Hash table,Splay tree}
       \end{axis}
       \end{tikzpicture}
+\caption{Sequential containers comparison (variable memory size)}
 \end{figure}
+
+
 \begin{figure}
 \centering
-\caption{Plot 1}
+    \label{f2}
     \begin{tikzpicture}
       \begin{axis}[
         legend pos=outer north east,
-        title={Variable \emph{area-under-curve} value},
         xlabel = \emph{area-under-curve},
         ylabel = Throughput {[op/s]},
         xmin = 0.65, xmax = 6.35,
@@ -95,21 +99,23 @@ Complete benchmark results are presented in Appendix B. In this section they are
         ymajorgrids=true,
         grid style=dashed,
       ]
-        \addplot coordinates{(1, 588)(2, 588)(3, 588)(4, 588)(5,588)(6,588)};
+        \addplot+[densely dashed, color=black, mark = no] coordinates{(1, 588)(2, 588)(3, 588)(4, 588)(5,588)(6,588)};
         \addplot coordinates{(1, 1199)(2, 1432)(3, 1709)(4, 1997)(5,2329)(6,2890)};
         \addplot coordinates{(1, 1183)(2, 1416)(3, 1655)(4, 1904)(5,2211)(6,2733)};
-        \addplot coordinates{(1, 658)(2, 698)(3, 747)(4, 801)(5,896)(6,1040)};
+        \addplot+[color=blue] coordinates{(1, 658)(2, 698)(3, 747)(4, 801)(5,896)(6,1040)};
         \legend{Baseline,WST,Hash table,Splay tree}
       \end{axis}
     \end{tikzpicture}
+\caption{Sequential containers comparison (variable \emph{area-under-curve} value)}
 \end{figure}
-\begin{figure}
+
+
+\begin{figure}[!t]
 \centering
-\caption{Plot 1}
+    \label{f3}
     \begin{tikzpicture}
           \begin{axis}[
             legend pos=outer north east,
-            title={Variable mean changing rate},
             xlabel = Mean changing rate,
             ylabel = Throughput {[op/s]},
             xmin = 0.80, xmax = 4.20,
@@ -120,20 +126,87 @@ Complete benchmark results are presented in Appendix B. In this section they are
             ymajorgrids=true,
             grid style=dashed,
           ]
-            \addplot coordinates{(1, 588)(2, 588)(3, 588)(4, 588)};
+            \addplot+[densely dashed, color=black, mark = no] coordinates{(1, 588)(2, 588)(3, 588)(4, 588)};
             \addplot coordinates{(1, 2461)(2, 2329)(3, 1161)(4, 330)};
             \addplot coordinates{(1, 2344)(2, 2211)(3, 1238)(4, 336)};
-            \addplot coordinates{(1, 957)(2, 896)(3, 565)(4, 311)};
+            \addplot+[color=blue] coordinates{(1, 957)(2, 896)(3, 565)(4, 311)};
             \legend{Baseline,WST,Hash table,Splay tree}
           \end{axis}
         \end{tikzpicture}
+\caption{Sequential containers comparison (variable mean changing rate)}
 \end{figure}
 
+
+\section{Analysis of the Concurrent Containers}
+
+\label{sec:conanalysis}
+
+The performance evaluation of the concurrent containers has been performed on the following machine:
+
 \begin{description}
-\item[Splay tree]The experimental evaluation proved splay tree ineffeciency. It is outperformed by WST and the hash table on all workloads. Therefore it is not recommended to use it for a numerical database.
-\item[Alternative eviction strategies] LRU and LFU policies turned out to be impractical from the perspective of numerical databases. The possible reason is that these policies discard initial priority and rely solely on access frequency.
-\item[WST] This data structure proved to be the most effective for a numerical database. However, no concurrent WST implementation is known, so it may be used in a sequantial environment only.
-\item[Hash table] In combination with the binary heap this data structure achieves approximately same throughput as WST (about 10\% lower). The concurrent version of this container has been introduced in this thesis (\Cref{sec:cndc}).
-\item[Mean changing rate] With the rate greater or equal 1, the numerical database becomes impractical~-- it achieves only half of the baseline performance.
-\item[Priority aging] Priority aging does not show any advantage over static priority. However, further studies and tests are required here, as the benchmark did not simulate the worst-case input for the static priority scheme.
-\end{description}
+    \item [CPU] Intel\textsuperscript{\textregistered{}} Xeon\textsuperscript{\textregistered{}} E5-2650 v4
+    2.20GHz (2.90 GHz\footnote{with Intel\textsuperscript{\textregistered{}} Turbo Boost Technology}) $ \times $ 2 sockets $ \times $ 12 cores
+    \item [Memory] 256 GB DDR4 2400 MHz
+    \item [OS] Linux\textsuperscript{\textregistered{}} Ubuntu\textsuperscript{\textregistered{}} 16.04 LTS 64-bit
+    \item [Compiler] GCC 5.4, compilation flags: \texttt{-O3 -std=c++14}
+    \end{description}
+
+Same as with the sequential containers, the complete benchmark data is presented in \Cref{ch:bresult}. \Cref{f4} shows the performance difference between the tested concurrent containers. \Cref{f5} demonstrates their scalability~-- the relative per-thread performance with increasing number of threads. For example, the graph shows that with 24 threads running simultaneously, the performance of one thread in \cndcname is 30\% lower than that in the single-threaded test.
+
+As expected, the coarse-grained locking approach yields the very ineffective container. The fact that with 2 threads the performance is two times lower compared to the single-threaded test (note, the total, not the per-thread performance) can be explained by the fact that locking/unlocking an open mutex is quite fast operation, but locking the already locked mutex implies, that the thread will be suspended and then resumed. This is quite heavy and complex operation from the perspective of an operational system.
+
+The binning approach performs better than the previous adapter. However, \Cref{f5} clearly shows, that it does not scale very good for the bigger number of threads~-- at 24 threads, per-thread performance is only 10\% as big as the maximum.
+
+\cndcname shows excellent scalability, even with 24 threads. The poor per-thread performance is rather explained by the huge memory overhead per item than by computational complexity~-- in addition to the overhead, introduced by the data structure itself, synchronization adds at least 60 bytes for each item. The further studies should be directed at lowering this overhead. For example, some synchronization can be performed in the lock-free fashion with no mutexes involved.
+
+\begin{figure}
+\centering
+    \label{f4}
+    \begin{tikzpicture}
+          \begin{axis}[
+            legend pos=outer north east,
+            xlabel = Thread count,
+            ylabel = Throughput {[op/s]},
+            ylabel shift = 0.5 pt,
+            xmin = 0, xmax = 26,
+            xtick={1, 2, 4, 8, 16, 24},
+            ymin = 0, ymax = 1400,
+            ytick={100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300},
+            yticklabels={1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000},
+            ymajorgrids=true,
+            grid style=dashed,
+          ]
+            \addplot coordinates{(1, 73.4)(2, 152.4)(4, 298.4)(8, 512.0)(16, 904.0)(24, 1292.0)};
+            \addplot coordinates{(1, 234)(2, 123)(4, 120)(8, 127)(16, 124)(24, 127)};
+            \addplot+[mark = triangle, mark options=solid]
+                     coordinates{(1, 223)(2, 279)(4, 332)(8, 379)(16, 525)(24, 636)};
+
+            \legend{\cndcname, Coarse + WST, Binning + WST}
+          \end{axis}
+        \end{tikzpicture}
+\caption{Concurrent containers comparison (variable thread count)}
+\end{figure}
+
+\begin{figure}
+\centering
+    \label{f5}
+    \begin{tikzpicture}
+          \begin{axis}[
+            legend pos=outer north east,
+            xlabel = Thread count,
+            ylabel = Relative performance per thread,
+            xmin = 0, xmax = 26,
+            xtick={1, 2, 4, 8, 16, 24},
+            ymin = 0, ymax = 1.1,
+            ytick={0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1},
+            ymajorgrids=true,
+            grid style=dashed]
+              \addplot coordinates{(1, 1)(2, 1.03)(4, 0.97)(8, 0.87)(16, 0.77)(24, 0.70)};
+              \addplot coordinates{(1, 1)(2, 0.26)(4, 0.127)(8, 0.067)(16, 0.033)(24, 0.02)};
+              \addplot+[mark = triangle, mark options=solid]
+                       coordinates{(1, 1)(2, 0.626)(4, 0.37)(8, 0.212)(16, 0.147)(24, 0.119)};
+              \legend{\cndcname, Coarse + WST, Binning + WST}
+          \end{axis}
+    \end{tikzpicture}
+    \caption{Concurrent containers scalability comparison}
+\end{figure}

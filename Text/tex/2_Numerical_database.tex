@@ -41,7 +41,7 @@ hit\_frequency \times base\_priority \times 256 + base\_priority
 
 Another advantage of the WST priority is a simple adjustment procedure when the hit frequency is updated (see \Cref{alg:wst_priority1}). However, this representation also has some drawbacks that will be discussed in \Cref{sssec:improved_wst}.
 %\newfloat{algorithm}{tbp}{lop}
-\begin{algorithm}[t]
+\begin{algorithm}[]
 \caption{$WST$ priority update}\label{alg:wst_priority1}
 \begin{algorithmic}[1]
   \Procedure{Update}{$priority$}\Comment{4 bytes long unsigned integer}
@@ -75,6 +75,8 @@ Weighted search tree holds all its nodes in a single contiguous array. These nod
 
 The difference is that each node is an AVL tree node at the same time~-- it stores links to its left child, right child, and parent node.
 
+\pagebreak
+
 With a given structure the three basic operations are defined as follows:
 \begin{block-description}
 \blockitem[\findop] is the same as in any binary tree~-- it is begins at the root and then continues as described in \Cref{alg:bst_find}.
@@ -88,10 +90,16 @@ With a given structure the three basic operations are defined as follows:
 
 \section{Known Implementations}
 
-There are several known implementations of the numerical database concept.
+%There are several known implementations of the numerical database concept.
 
-The reference implementation was made by Park, Bahri, Draayer, and Zheng. A complete source code is available at \cite{wstree}. It was implemented in Fortran programming language. However, the source code cannot be compiled with any modern Fortran compiler\cite{masat}. Therefore, this implementation is mentioned here but cannot participate in the benchmark. The \numdbname library contains the implementation of the weighted search tree, recreated basing on \cite{park90} and \cite{park94}.
+The reference implementation was made by Park, Bahri, Draayer, and Zheng. A complete source code is available at \cite{wstree}. It was implemented in Fortran programming language. The source code cannot be compiled with any modern Fortran compiler\cite{masat}. Therefore, this implementation is mentioned here but cannot participate in the benchmark. The \numdbname library contains the implementation of the weighted search tree, recreated basing on \cite{park90} and \cite{park94}.
 
-Another implementation has been developed and described by Miroslav Masat in his bachelor’s thesis \cite{masat}. Sources are available at \cite{ccherish}. However in this particular implementation item priorities are defined solely by the user and are not updated afterward. Therefore it is only applicable in scenarios when the item importance is known beforehand. A canonical numerical database has a broader field of applications.
+Another implementation has been developed and described by Miroslav Masat in his bachelor’s thesis \cite{masat}. C++ source code is available at \cite{ccherish}. In this particular implementation item priorities are defined solely by the user and are not updated afterward. Therefore it is only applicable in scenarios when the item importance is known beforehand. A canonical numerical database has a broader field of applications.
+
+Another essential flaw of Masat's implementation is that his weighted search tree operates on keys only, providing no facility for storing values, associated with keys\footnote{Practically, it is possible to overcome this limitation. Both the key and the value can be merged in a single structure, and the overloaded comparison operators would compare only keys. It is still unclear, why it was not implemented in the library itself.}.
+
+What is more, \emph{the key is stored twice for each item}. The AVL tree and the binary heap are not incorporated into the single data structure, but are kept completely separate. And each of them stores its own copy of keys. This fundamentally violates the original WST design.
+
+Considering these flaws, Masat's work is excluded from the performance evaluation. It seems, that there is no advantage compared to the WST implementation, provided in \numdbname.
 
 Both of the implementations are designed for a single-threaded environment only. It is a huge drawback since it is natural to run scientific applications on many-core systems. Therefore, a memoization system must support concurrent access in order to be usable in real-world applications. It was achieved in the \numdbname library.

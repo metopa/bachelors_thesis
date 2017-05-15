@@ -96,7 +96,7 @@ The number of bins is passed in the class constructor. The mapping is defined as
 
 \subsection{CNDC}
 \label{sec:cndc}
-For the purposes of the \numdbname library, the original concurrent container, called \emph{Concurrent Numerical Database Container}~-- \cndcname, has been developed. It defines 3 thread-safe operations~-- \findop, \insertop, and \func{removeMin}{}. Thread-safeness is achieved through the fine-grained locking approach. \cndcname is based on concurrent versions of the hash table and the binary heap. Sequential benchmarks (\Cref{sec:banalysis}) proved that the combination of a hash table and a binary heap outperforms numerical databases, that are based on the LRU and LFU eviction policies.
+For the purposes of the \numdbname library, the original concurrent container, called \emph{Concurrent Numerical Database Container}~-- \cndcname, has been developed. It defines 3 thread-safe operations~-- \findop, \insertop, and \func{removeMin}{}. Thread-safeness is achieved through the fine-grained locking approach. \cndcname is based on concurrent versions of the hash table and the binary heap. Sequential benchmarks (\Cref{sec:secanalysis}) proved that the combination of a hash table and a binary heap outperforms numerical databases, that are based on the LRU and LFU eviction policies.
 
 Fine-grained locking hash table implementation is much simpler compared to a similar concurrent BST. A lock is assigned to every hash table bucket (or every $k$ buckets) and every operation inside the bucket locks the corresponding mutex. Since an operation in one bucket never interferes with any other bucket, only one lock is needed per operation, while other threads can operate on other buckets at the same time. Therefore, the overhead added by locking is smaller, than in a concurrent BST, where up to $\log{\func{height}{T}}$ mutexes has to be locked on every operation.
 
@@ -133,5 +133,5 @@ Finally, \func{bubbleUp}{}\cite{champ} is performed. It propagates the node down
 \end{enumerate}
 
 \end{block-description}
-Search operation can be improved by using some technique, that would allow to release the bucket lock earlier, prior to \func{BubbleDown}{}. Such technique has not been developed yet.
+%Search operation can be improved by using some technique, that would allow to release the bucket lock earlier, prior to \func{BubbleDown}{}. Such technique has not been developed yet.
 

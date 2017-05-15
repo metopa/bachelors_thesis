@@ -19,7 +19,7 @@
 
 \section{Concurrent Containers}
 
-The number after the container name in \Cref{tbl:c1} and \Cref{tbl:c2} denotes the number of threads.
+The number after the container name in \Cref{tbl:c1} and \Cref{tbl:c2} denotes the number of threads running in parallel.
 
 \begin{description}
 \item[CNDC] The concurrent numerical database container.
@@ -32,6 +32,7 @@ The number after the container name in \Cref{tbl:c1} and \Cref{tbl:c2} denotes t
 
 
 \chapter{Benchmark Results}
+\label{ch:bresult}
 \pagebreak
 \begin{tabular}[h]{l r} \toprule
 Parameter & Value \\ \midrule
@@ -42,7 +43,7 @@ Mean changing rate & 0 \\ \bottomrule
 \end{tabular}
 
 \begin{table}
-\caption{Variable memory size (static input distribution)}
+\caption{Sequential benchmark (variable memory size, static input distribution)}
 \begin{tabular}[b]{l  r  r  r } \toprule
 Container & \multicolumn{3}{c}{Throughput [op/s]} \\ \cmidrule(r){2-4}
 & 4 KiB & 16 KiB & 64 KiB \\ \midrule
@@ -63,7 +64,7 @@ Hash table, LRU & 803 & 779 & 771 \\
 Hash table, LFU & 750 & 711 & 706 \\
 \\
 Splay tree, Splay policy, canonical & 1014 & 976 & 957 \\
-Splay tree, Splay policy, partial & 766 & 963 & 723 \\
+Splay tree, Splay policy, partial & 766 & 963 & 823 \\
 Splay tree, LRU, canonical & 721 & 700 & 679 \\
 Splay tree, LFU, canonical & 671 & 663 & 659 \\
 \bottomrule
@@ -83,7 +84,7 @@ Mean changing rate & $^1/_{100}$ \\ \bottomrule
 \end{tabular}
 
 \begin{table}
-\caption{Variable memory size (time-varying input distribution)}
+\caption{Sequential benchmark (variable memory size, time-varying input distribution)}
 \begin{tabular}[]{l  r  r  r } \toprule
 Container & \multicolumn{3}{c}{Throughput [op/s]} \\ \cmidrule(r){2-4}
 & 4 KiB & 16 KiB & 64 KiB \\ \midrule
@@ -123,7 +124,7 @@ Mean changing rate & $^1/_{100}$ \\ \bottomrule
 \end{tabular}
 
 \begin{table}
-\caption{Variable \emph{area-under-curve} value}
+\caption{Sequential benchmark (variable \emph{area-under-curve} value)}
 \begin{tabular}[]{l r r r r r r} \toprule
 Container & \multicolumn{6}{c}{Throughput [op/s]} \\ \cmidrule(r){2-7}
 & 0.45 & 0.55 & 0.65 & 0.75 & 0.85 & 0.95 \\ \midrule
@@ -163,7 +164,7 @@ Mean changing rate & \emph{vary} \\ \bottomrule
 \end{tabular}
 
 \begin{table}
-\caption{Variable mean changing rate}
+\caption{Sequential benchmark (variable mean changing rate)}
 \begin{tabular}[]{l r r r r r} \toprule
 Container & \multicolumn{4}{c}{Throughput [op/s]} \\ \cmidrule(r){2-5}
 & 0 & $^1/_{100}$ & $^1/_{10}$ & 1 \\ \midrule
@@ -184,7 +185,7 @@ Hash table, LRU & 771 & 720 & 479 & 386 \\
 Hash table, LFU & 706 & 651 & 438 & 356 \\
 \\
 Splay tree, Splay policy, canonical & 957 & 896 & 565 & 311 \\
-Splay tree, Splay policy, partial & 723 & 799 & 533 & 398 \\
+Splay tree, Splay policy, partial & 823 & 799 & 533 & 398 \\
 Splay tree, LRU, canonical & 679 & 631 & 419 & 350 \\
 Splay tree, LFU, canonical & 659 & 628 & 418 & 340 \\
 \bottomrule
@@ -202,7 +203,7 @@ Mean changing rate & 0 \\ \bottomrule
 \end{tabular}
 
 \begin{table}
-\caption{Variable memory size (static input distribution)}
+\caption{Parallel benchmark (variable memory size, static input distribution)}
 \label{tbl:c1}
 \begin{tabular}[b]{l  r  r  r } \toprule
 Container & \multicolumn{3}{c}{Throughput [op/s]} \\ \cmidrule(r){2-4}
@@ -244,7 +245,7 @@ Mean changing rate & $\frac{1}{100 \times thread{\ }count}$ \\ \bottomrule
 \end{tabular}
 
 \begin{table}
-\caption{Variable memory size (time-varying input distribution)}
+\caption{Parallel benchmark (variable memory size, time-varying input distribution)}
 \label{tbl:c2}
 \begin{tabular}[b]{l  r  r  r } \toprule
 Container & \multicolumn{3}{c}{Throughput [op/s]} \\ \cmidrule(r){2-4}
