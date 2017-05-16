@@ -109,7 +109,7 @@ The evolution of coarse-grained locking is the \emph{binning}. The main drawback
 Firstly, the numbers of bins~-- independent data structure instances~-- is chosen. Then a mapping between the item domain and a bin number is introduced. The mapping should yield a uniform distribution of mapped values. Every item is stored only in its assigned bin. Every bin has its own mutex, therefore the access to every bin is serialized. But since items are mapped uniformly, it is expected to produce much less contention than in case of a single lock.
 
 \subsection{Fine-grained Locking}
-
+\label{sec:fgl}
 The fine-grained locking usually offers better scalability, than the previously discussed approaches. Instead of a single lock, many mutexes are used simultaneously. Every mutex protects its part of data. The contention between threads is lower as it is unlikely that several threads will access the same portion of data at the same time.
 
 However, this is true only if every portion has the same probability of being accessed (like in a concurrent hash table). In some data structures, typically binary trees, there are some nodes that are accessed (and are locked before access) oftener than others, e.g. the root in a binary tree.

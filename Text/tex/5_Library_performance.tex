@@ -34,7 +34,7 @@ The benchmark has several input parameters:
 
 \label{sec:secanalysis}
 
-The performance evaluation of the sequential containers has been performed on the following machine:
+The performance evaluation of the sequential containers has been done on the following machine:
 
 \begin{description}
     \item [CPU] Intel\textsuperscript{\textregistered{}} Core\textsuperscript{\texttrademark{}} i5-6200U
@@ -50,7 +50,7 @@ The weighted search tree proved to be the most effective container for the numer
 
 The combination of the hash table and the binary heap performs about 10\% slower than WST. However, its advantage over WST is the simpler structure, that made it possible to develop the concurrent version of this container, called \cndcname.
 
-The experimental evaluation proved splay tree inefficiency. It is outperformed by WST and the hash table on all workloads. Therefore it is not recommended to use it for a numerical database.
+The benchmark proved splay tree inefficiency. It is outperformed by WST and the hash table on all workloads. Therefore it is not recommended to use it for a numerical database.
 
 \emph{Least-recently-used} and \emph{Least-frequently-used} eviction policies do not achieve the same performance as the policy, based on the binary heap. Possibly, because they do not rely on the initial item priority, thus give no preference to items that are rarely accessed  but took long to be calculated and due to that must be kept in the database.
 
@@ -153,9 +153,9 @@ The performance evaluation of the concurrent containers has been performed on th
 
 Same as with the sequential containers, the complete benchmark data is presented in \Cref{ch:bresult}. \Cref{f4} shows the performance difference between the tested concurrent containers. \Cref{f5} demonstrates their scalability~-- the relative per-thread performance with increasing number of threads. For example, the graph shows that with 24 threads running simultaneously, the performance of one thread in \cndcname is 30\% lower than that in the single-threaded test.
 
-As expected, the coarse-grained locking approach yields the very ineffective container. The fact that with 2 threads the performance is two times lower compared to the single-threaded test (note, the total, not the per-thread performance) can be explained by the fact that locking/unlocking an open mutex is quite fast operation, but locking the already locked mutex implies, that the thread will be suspended and then resumed. This is quite heavy and complex operation from the perspective of an operational system.
+As expected, the coarse-grained locking approach yields the very ineffective container. The observation that with 2 threads the performance is two times lower compared to the single-threaded test (note, the total, not the per-thread performance) can be explained by the high contantion on the single mutex. The process of locking/unlocking an open mutex is quite fast operation, but locking the already locked mutex implies, that the thread will be suspended and then resumed. This is quite heavy and complex operation from the perspective of an operational system.
 
-The binning approach performs better than the previous adapter. However, \Cref{f5} clearly shows, that it does not scale very good for the bigger number of threads~-- at 24 threads, per-thread performance is only 10\% as big as the maximum.
+The binning approach performs better than the previous one. However, \Cref{f5} clearly shows, that it does not scale very good for the bigger number of threads~-- at 24 threads, per-thread performance is only 10\% as high as the maximum.
 
 \cndcname shows excellent scalability, even with 24 threads. The poor per-thread performance is rather explained by the huge memory overhead per item than by computational complexity~-- in addition to the overhead, introduced by the data structure itself, synchronization adds at least 60 bytes for each item. The further studies should be directed at lowering this overhead. For example, some synchronization can be performed in the lock-free fashion with no mutexes involved.
 
