@@ -189,7 +189,7 @@ namespace numdb {
 				empty_node->key_ = std::move(key);
 				empty_node->value_ = std::move(value);
 				empty_node->insertAfter(node_ref);
-				heapInsert(empty_node.get(), std::move(lg));
+				heapInsert(empty_node.get(), priority, std::move(lg));
 				empty_node.release();
 				return true;
 			}
@@ -290,7 +290,7 @@ namespace numdb {
 				return evicted_node;
 			}
 
-			void heapInsert(HashTableNode* tnode, lock_guard_t bucket_lock) {
+			void heapInsert(HashTableNode* tnode, size_t priority, lock_guard_t bucket_lock) {
 				assert(tnode);
 				lock_guard_t lg1((heap_locks_[0]));
 				assert(count_ < max_count_);
@@ -299,12 +299,12 @@ namespace numdb {
 
 				if (count_ == 0) {
 					heap_[count_].ht_node_ = tnode;
-					heap_[count_].priority_ = {};
+					heap_[count_].priority_ = priority;
 					count_ = 1;
 				} else {
 					lock_guard_t lg2((heap_locks_[count_]));
 					heap_[count_].ht_node_ = tnode;
-					heap_[count_].priority_ = {};
+					heap_[count_].priority_ = priority;
 
 					count_++;
 					lg1.unlock();
