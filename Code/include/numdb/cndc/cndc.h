@@ -162,6 +162,13 @@ namespace numdb {
 			}
 
 			bool insert(key_t key, value_t value, size_t priority) {
+				auto deleter = [&](HashTableNode* node) {
+					disposeNode(node);
+				};
+				std::unique_ptr<HashTableNode, decltype(deleter)>
+						empty_node(acquireFreeHtNode(),
+								   deleter); //Returns the node back into the pool in case of failure/exception
+
 				size_t bucket_nr = keyToBucketNr(key);
 				HashTableNode** node_ref = &buckets_[bucket_nr];
 				lock_guard_t lg((bucket_locks_[bucket_nr]));
@@ -179,12 +186,11 @@ namespace numdb {
 					node_ref = &((*node_ref)->next_);
 				}
 
-				auto empty_node = acquireFreeHtNode(bucket_nr);
-
 				empty_node->key_ = std::move(key);
 				empty_node->value_ = std::move(value);
 				empty_node->insertAfter(node_ref);
-				heapInsert(empty_node, priority, std::move(lg));
+				heapInsert(empty_node.get(), priority, std::move(lg));
+				empty_node.release();
 				return true;
 			}
 
@@ -196,17 +202,14 @@ namespace numdb {
 				return hasher(key) % buckets_.size();
 			}
 
-			HashTableNode* evictItemWithLowestPriority(size_t locked_bucked_nr) {
+			HashTableNode* evictItemWithLowestPriority() {
 				HashTableNode* candidate = heapExtractMin();
 				if (!candidate)
 					return nullptr;
 
 				size_t bucket_nr = keyToBucketNr(candidate->key_);
 				HashTableNode** node_ref = &buckets_[bucket_nr];
-				lock_guard_t lg;
-				if (locked_bucked_nr != bucket_nr) {
-					lg = lock_guard_t(bucket_locks_[bucket_nr]);
-				}
+				lock_guard_t lg((bucket_locks_[bucket_nr]));
 
 				while (*node_ref) {
 					if (candidate->key_ < (*node_ref)->key_)
@@ -224,12 +227,12 @@ namespace numdb {
 				return nullptr;
 			}
 
-			HashTableNode* acquireFreeHtNode(size_t locked_bucked_nr) {
+			HashTableNode* acquireFreeHtNode() {
 				HashTableNode* node = nullptr;
 				while (true) {
 					if (node = allocHtNode())
 						break;
-					if (node = evictItemWithLowestPriority(locked_bucked_nr))
+					if (node = evictItemWithLowestPriority())
 						break;
 				}
 				return node;
