@@ -72,8 +72,6 @@ namespace numdb {
 				lock_guard_t lg;
 			};
 
-			struct VersionChangedException {
-			};
 
 		  public:
 			static constexpr size_t maxElemCountForCapacity(
@@ -318,29 +316,29 @@ namespace numdb {
 			void heapIncreasePriority(TableNode* tnode, uint32_t version) {
 				assert(tnode);
 				backoff_t backoff;
-				try {
+
 					while (1) {
 						auto lg = heapLockNode(tnode, version);
-
-						idx_t hnode = tnode->heap_node_;
-						heap_[hnode].priority_.access();
-						topDownHeapify(hnode, std::move(lg));
+						if (lg.owns_lock()) {
+							idx_t hnode = tnode->heap_node_;
+							heap_[hnode].priority_.access();
+							topDownHeapify(hnode, std::move(lg));
+						}
 						return;
 					}
-				}
-				catch (VersionChangedException) {}
+
 			}
 
-			lock_guard_t heapLockNode(TableNode* tnode, uint32_t version) throw(VersionChangedException) {
+			lock_guard_t heapLockNode(TableNode* tnode, uint32_t version) {
 				backoff_t backoff;
 				while (true) {
 					if (tnode->version_ != version)
-						throw VersionChangedException{};
+						return {};
 					idx_t hnode = tnode->heap_node_;
 					lock_guard_t lg(heap_locks_[hnode], std::try_to_lock);
 					if (lg.owns_lock()) {
 						if (tnode->version_ != version || heap_[hnode].table_node_ == nullptr)
-							throw VersionChangedException{};
+							return {};
 						if (heap_[hnode].table_node_ == tnode) {
 							assert(hnode == tnode->heap_node_);
 							return std::move(lg);
@@ -397,12 +395,13 @@ namespace numdb {
 					}
 					node_lg.unlock();
 					node = tnode->heap_node_;
-					try {
-						node_lg = parent_lg.owns_lock() ? std::move(parent_lg) :
-								  heapLockNode(tnode, version);
-					}
-					catch (VersionChangedException) {
-						return;
+
+					if (parent_lg.owns_lock())
+						node_lg = std::move(parent_lg);
+					else {
+						node_lg = heapLockNode(tnode, version);
+						if (!node_lg.owns_lock())
+							return;
 					}
 				}
 			}
