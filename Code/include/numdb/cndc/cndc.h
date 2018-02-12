@@ -38,20 +38,20 @@ namespace numdb {
 			using backoff_t = utility::ExpBackoff;
 
 		  private:
-			struct TableNode {
-				void extract(TableNode** this_node_ref) {
+			struct HashTableNode {
+				void extract(HashTableNode** this_node_ref) {
 					assert(this_node_ref != nullptr);
 					assert(this == *this_node_ref);
 					*this_node_ref = next_;
 				}
 
-				void insertAfter(TableNode** prev_node_ref) {
+				void insertAfter(HashTableNode** prev_node_ref) {
 					assert(prev_node_ref != nullptr);
 					next_ = *prev_node_ref;
 					*prev_node_ref = this;
 				}
 
-				TableNode* next_;
+				HashTableNode* next_;
 				std::atomic<idx_t> heap_node_;
 				std::atomic<uint32_t> version_;
 				key_t key_;
@@ -59,7 +59,7 @@ namespace numdb {
 			};
 
 			struct HeapNode {
-				TableNode* table_node_ = nullptr;
+				HashTableNode* ht_node_ = nullptr;
 				priority_t priority_;
 
 				bool operator <(const HeapNode& other) const {
@@ -77,12 +77,12 @@ namespace numdb {
 			static constexpr size_t maxElemCountForCapacity(
 					size_t capacity, double load_factor) {
 				return static_cast<size_t>(
-						capacity / (sizeof(TableNode) + sizeof(TableNode*) / load_factor));
+						capacity / (sizeof(HashTableNode) + sizeof(HashTableNode*) / load_factor));
 			}
 
 			static constexpr size_t elementSize(double load_factor) {
-				return sizeof(TableNode) + sizeof(HeapNode) + sizeof(std::mutex) +
-					   (size_t) std::ceil((sizeof(TableNode*) + sizeof(std::mutex)) / load_factor);
+				return sizeof(HashTableNode) + sizeof(HeapNode) + sizeof(std::mutex) +
+					   (size_t) std::ceil((sizeof(HashTableNode*) + sizeof(std::mutex)) / load_factor);
 			}
 
 			static constexpr bool isThreadsafe() {
@@ -128,7 +128,7 @@ namespace numdb {
 				for (size_t i = 0; i < buckets_.size(); i++) {
 					out << '(' << i << ')';
 					lock_guard_t lg((buckets_[i].lock_));
-					TableNode* node = buckets_[i].ptr_;
+					HashTableNode* node = buckets_[i].ptr_;
 
 					while (node) {
 						out << "->" << node->key_ << '[' << node->value_ << ']';
@@ -139,15 +139,15 @@ namespace numdb {
 			}
 
 			optional_value_t find(const key_t& key) {
-				size_t bucket_nr = getBucket(key);
-				TableNode** node_ref = &buckets_[bucket_nr];
+				size_t bucket_nr = keyToBucketNr(key);
+				HashTableNode** node_ref = &buckets_[bucket_nr];
 				lock_guard_t lg((bucket_locks_[bucket_nr]));
 
 				while (*node_ref) {
 					if (key < (*node_ref)->key_)
 						break;
 					if (key == (*node_ref)->key_) {
-						TableNode* found_node = *node_ref;
+						HashTableNode* found_node = *node_ref;
 						value_t value = found_node->value_;
 						uint32_t version = found_node->version_;
 						lg.unlock();
@@ -162,27 +162,27 @@ namespace numdb {
 			}
 
 			bool insert(key_t key, value_t value, size_t priority) {
-				auto deleter = [&](TableNode* node) {
+				auto deleter = [&](HashTableNode* node) {
 					disposeNode(node);
 				};
-				std::unique_ptr<TableNode, decltype(deleter)>
-						empty_node(acquireFreeNode(),
+				std::unique_ptr<HashTableNode, decltype(deleter)>
+						empty_node(acquireFreeHtNode(),
 								   deleter); //Returns the node back into the pool in case of failure/exception
 
-				size_t bucket_nr = getBucket(key);
-				TableNode** node_ref = &buckets_[bucket_nr];
+				size_t bucket_nr = keyToBucketNr(key);
+				HashTableNode** node_ref = &buckets_[bucket_nr];
 				lock_guard_t lg((bucket_locks_[bucket_nr]));
 				while (*node_ref) {
+					if (key < (*node_ref)->key_)
+						break;
 					if (key == (*node_ref)->key_) {
-						TableNode* found_node = *node_ref;
+						HashTableNode* found_node = *node_ref;
 						uint32_t version = found_node->version_;
 						lg.unlock();
 
 						heapIncreasePriority(found_node, version);
 						return false;
 					}
-					if (key < (*node_ref)->key_)
-						break;
 					node_ref = &((*node_ref)->next_);
 				}
 
@@ -195,27 +195,27 @@ namespace numdb {
 			}
 
 		  private:
-			static constexpr idx_t null = static_cast<idx_t>(-1);
+			static constexpr idx_t null_idx = static_cast<idx_t>(-1);
 
-			size_t getBucket(const key_t& key) const {
-				size_t bucket = hasher_t()(key) % buckets_.size();
-				return bucket;
+			size_t keyToBucketNr(const key_t& key) const {
+				static hasher_t hasher;
+				return hasher(key) % buckets_.size();
 			}
 
-			TableNode* extractLuNode() {
-				TableNode* candidate = heapExtractMin();
+			HashTableNode* evictItemWithLowestPriority() {
+				HashTableNode* candidate = heapExtractMin();
 				if (!candidate)
 					return nullptr;
 
-				size_t bucket_nr = getBucket(candidate->key_);
-				TableNode** node_ref = &buckets_[bucket_nr];
+				size_t bucket_nr = keyToBucketNr(candidate->key_);
+				HashTableNode** node_ref = &buckets_[bucket_nr];
 				lock_guard_t lg((bucket_locks_[bucket_nr]));
 
 				while (*node_ref) {
 					if (candidate->key_ < (*node_ref)->key_)
 						break;
 					if (candidate->key_ == (*node_ref)->key_) {
-						TableNode* found_node = *node_ref;
+						HashTableNode* found_node = *node_ref;
 						assert(found_node == candidate);
 						found_node->extract(node_ref);
 						found_node->version_++;
@@ -227,29 +227,29 @@ namespace numdb {
 				return nullptr;
 			}
 
-			TableNode* acquireFreeNode() {
-				TableNode* node = nullptr;
-				while (1) {
-					if (node = allocNode())
+			HashTableNode* acquireFreeHtNode() {
+				HashTableNode* node = nullptr;
+				while (true) {
+					if (node = allocHtNode())
 						break;
-					if (node = extractLuNode())
+					if (node = evictItemWithLowestPriority())
 						break;
 				}
 				return node;
 			}
 
-			TableNode* allocNode() {
+			HashTableNode* allocHtNode() {
 				if (!disposed_nodes_head_)
 					return nullptr;
 
 				lock_guard_t lg(disposed_nodes_lock_);
-				TableNode* tnode = disposed_nodes_head_;
+				HashTableNode* tnode = disposed_nodes_head_;
 				if (tnode)
 					disposed_nodes_head_ = tnode->next_;
 				return tnode;
 			}
 
-			void disposeNode(TableNode* tnode) {
+			void disposeNode(HashTableNode* tnode) {
 				assert(tnode);
 				lock_guard_t lg(disposed_nodes_lock_);
 				tnode->next_ = disposed_nodes_head_;
@@ -261,17 +261,17 @@ namespace numdb {
 			 */
 			void swapHeapNodes(idx_t a, idx_t b) {
 				std::swap(heap_[a], heap_[b]);
-				heap_[a].table_node_->heap_node_ = a;
-				heap_[b].table_node_->heap_node_ = b;
+				heap_[a].ht_node_->heap_node_ = a;
+				heap_[b].ht_node_->heap_node_ = b;
 			}
 
-			TableNode* heapExtractMin() {
+			HashTableNode* heapExtractMin() {
 				lock_guard_t lg1((heap_locks_[0]));
 				if (count_ == 0)
 					return nullptr;
 
-				TableNode* evicted_node = heap_[0].table_node_;
-				heap_[0].table_node_ = nullptr;
+				HashTableNode* evicted_node = heap_[0].ht_node_;
+				heap_[0].ht_node_ = nullptr;
 
 				if (count_ == 1) {
 					count_ = 0;
@@ -281,7 +281,7 @@ namespace numdb {
 				{
 					lock_guard_t lg2((heap_locks_[count_ - 1]));
 					std::swap(heap_[0], heap_[(count_ - 1)]);
-					heap_[0].table_node_->heap_node_ = 0;
+					heap_[0].ht_node_->heap_node_ = 0;
 					count_--;
 				}
 				if (count_ > 1) {
@@ -290,7 +290,7 @@ namespace numdb {
 				return evicted_node;
 			}
 
-			void heapInsert(TableNode* tnode, lock_guard_t bucket_lock) {
+			void heapInsert(HashTableNode* tnode, lock_guard_t bucket_lock) {
 				assert(tnode);
 				lock_guard_t lg1((heap_locks_[0]));
 				assert(count_ < max_count_);
@@ -298,12 +298,12 @@ namespace numdb {
 				tnode->heap_node_ = count_.load();
 
 				if (count_ == 0) {
-					heap_[count_].table_node_ = tnode;
+					heap_[count_].ht_node_ = tnode;
 					heap_[count_].priority_ = {};
 					count_ = 1;
 				} else {
 					lock_guard_t lg2((heap_locks_[count_]));
-					heap_[count_].table_node_ = tnode;
+					heap_[count_].ht_node_ = tnode;
 					heap_[count_].priority_ = {};
 
 					count_++;
@@ -313,11 +313,11 @@ namespace numdb {
 				}
 			}
 
-			void heapIncreasePriority(TableNode* tnode, uint32_t version) {
+			void heapIncreasePriority(HashTableNode* tnode, uint32_t version) {
 				assert(tnode);
 				backoff_t backoff;
 
-					while (1) {
+					while (true) {
 						auto lg = heapLockNode(tnode, version);
 						if (lg.owns_lock()) {
 							idx_t hnode = tnode->heap_node_;
@@ -329,7 +329,7 @@ namespace numdb {
 
 			}
 
-			lock_guard_t heapLockNode(TableNode* tnode, uint32_t version) {
+			lock_guard_t heapLockNode(HashTableNode* tnode, uint32_t version) {
 				backoff_t backoff;
 				while (true) {
 					if (tnode->version_ != version)
@@ -337,9 +337,9 @@ namespace numdb {
 					idx_t hnode = tnode->heap_node_;
 					lock_guard_t lg(heap_locks_[hnode], std::try_to_lock);
 					if (lg.owns_lock()) {
-						if (tnode->version_ != version || heap_[hnode].table_node_ == nullptr)
+						if (tnode->version_ != version || heap_[hnode].ht_node_ == nullptr)
 							return {};
-						if (heap_[hnode].table_node_ == tnode) {
+						if (heap_[hnode].ht_node_ == tnode) {
 							assert(hnode == tnode->heap_node_);
 							return std::move(lg);
 						}
@@ -351,17 +351,17 @@ namespace numdb {
 
 			idx_t topDownHeapify(idx_t parent, lock_guard_t parent_lg) {
 				assert(parent_lg.owns_lock());
-				while (1) {
+				while (true) {
 
 					auto left = heapAcquireLeftLock(parent);
-					if (left.idx == null)
+					if (left.idx == null_idx)
 						return parent;
 
 					auto right = heapAcquireRightLock(parent);
 
 					idx_t min = 0;
 
-					if (right.idx != null && heap_[right.idx] < heap_[left.idx]) {
+					if (right.idx != null_idx && heap_[right.idx] < heap_[left.idx]) {
 						left.lg.unlock();
 						min = right.idx;
 					} else {
@@ -371,20 +371,22 @@ namespace numdb {
 
 					if (heap_[min] < heap_[parent]) {
 						swapHeapNodes(parent, min);
-						parent_lg = std::move(min == left.idx ? left.lg : right.lg);
+						parent_lg = (min == left.idx) ?
+									std::move(left.lg) :
+									std::move(right.lg);
 						parent = min;
 					} else
 						return parent;
 				}
 			}
 
-			void bottomUpHeapify(TableNode* tnode, lock_guard_t node_lg, uint32_t version) {
+			void bottomUpHeapify(HashTableNode* tnode, lock_guard_t node_lg, uint32_t version) {
 				assert(node_lg.owns_lock());
 				idx_t node = tnode->heap_node_;
 				backoff_t backoff;
-				while (1) {
+				while (true) {
 					auto parent = heapParent(node);
-					if (parent == null)
+					if (parent == null_idx)
 						break;
 					lock_guard_t parent_lg(heap_locks_[parent], std::try_to_lock);
 					if (parent_lg.owns_lock()) {
@@ -407,53 +409,53 @@ namespace numdb {
 			}
 
 			idx_t heapParent(idx_t i) {
-				return i == 0 ? null : (i - 1) / 2;
+				return i == 0 ? null_idx : (i - 1) / 2;
 			}
 
 			idx_t heapLeft(idx_t i) {
-				return i * 2 + 1 < max_count_ ? i * 2 + 1 : null;
+				return i * 2 + 1 < max_count_ ? i * 2 + 1 : null_idx;
 			}
 
 			idx_t heapRight(idx_t i) {
-				return i * 2 + 2 < max_count_ ? i * 2 + 2 : null;
+				return i * 2 + 2 < max_count_ ? i * 2 + 2 : null_idx;
 			}
 
 			LockedHeapNode heapAcquireLeftLock(idx_t i) {
 				idx_t child = heapLeft(i);
-				if (child == null)
-					return {null, {}};
+				if (child == null_idx)
+					return {null_idx, {}};
 				lock_guard_t lg((heap_locks_[child]));
 				//Although count_ can be changed concurrently,
 				// its value can't pass 'child' idx without locking 'child' mutex
 				if (child < count_)
 					return {child, std::move(lg)};
 				else
-					return {null, {}};
+					return {null_idx, {}};
 			}
 
 			LockedHeapNode heapAcquireRightLock(idx_t i) {
 				idx_t child = heapRight(i);
-				if (child == null)
-					return {null, {}};
+				if (child == null_idx)
+					return {null_idx, {}};
 				lock_guard_t lg((heap_locks_[child]));
 				//Although count_ can be changed concurrently,
 				// its value can't pass 'child' idx without locking 'child' mutex
 				if (child < count_)
 					return {child, std::move(lg)};
 				else
-					return {null, {}};
+					return {null_idx, {}};
 			}
 
 
 			size_t max_count_;
 			double load_factor_;
 			std::atomic<idx_t> count_;
-			TableNode* disposed_nodes_head_;
+			HashTableNode* disposed_nodes_head_;
 			std::mutex disposed_nodes_lock_;
 
-			std::vector<TableNode*> buckets_;
+			std::vector<HashTableNode*> buckets_;
 			std::vector<std::mutex> bucket_locks_;
-			std::vector<TableNode> table_nodes_;
+			std::vector<HashTableNode> table_nodes_;
 			std::vector<HeapNode> heap_;
 			std::vector<std::mutex> heap_locks_;
 		};
