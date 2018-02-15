@@ -287,57 +287,52 @@ namespace numdb {
 				return evicted_node;
 			}
 
-			void heapInsert(HashTableNode* tnode, size_t priority, lock_guard_t bucket_lock) {
-				assert(tnode);
+			void heapInsert(HashTableNode* ht_node, size_t priority, lock_guard_t bucket_lock) {
+				assert(ht_node);
 				lock_guard_t lg1((heap_locks_[0]));
 				assert(count_ < max_count_);
-				uint32_t version = tnode->version_++;
-				tnode->heap_node_ = count_.load();
+				ht_node->version_++;
+				ht_node->heap_node_ = count_.load();
 
 				if (count_ == 0) {
-					heap_[count_].ht_node_ = tnode;
+					heap_[count_].ht_node_ = ht_node;
 					heap_[count_].priority_ = priority;
 					count_ = 1;
 				} else {
 					lock_guard_t lg2((heap_locks_[count_]));
-					heap_[count_].ht_node_ = tnode;
+					heap_[count_].ht_node_ = ht_node;
 					heap_[count_].priority_ = priority;
 
 					count_++;
+					uint32_t version = ht_node->version_;
 					lg1.unlock();
 					bucket_lock.unlock();
-					bottomUpHeapify(tnode, std::move(lg2), version);
+					bottomUpHeapify(ht_node, std::move(lg2), version);
 				}
 			}
 
-			void heapIncreasePriority(HashTableNode* tnode, uint32_t version) {
-				assert(tnode);
-				backoff_t backoff;
-
-					while (true) {
-						auto lg = heapLockNode(tnode, version);
-						if (lg.owns_lock()) {
-							idx_t hnode = tnode->heap_node_;
-							heap_[hnode].priority_.access();
-							topDownHeapify(hnode, std::move(lg));
-						}
-						return;
-					}
-
+			void heapIncreasePriority(HashTableNode* ht_node, uint32_t version) {
+				auto lg = heapLockNode(ht_node, version);
+				if (lg.owns_lock()) {
+					idx_t heap_node_idx = ht_node->heap_node_;
+					heap_[heap_node_idx].priority_.access();
+					topDownHeapify(heap_node_idx, std::move(lg));
+				}
 			}
 
-			lock_guard_t heapLockNode(HashTableNode* tnode, uint32_t version) {
+			lock_guard_t heapLockNode(HashTableNode* ht_node, uint32_t version) {
 				backoff_t backoff;
 				while (true) {
-					if (tnode->version_ != version)
+					if (ht_node->version_ != version)
 						return {};
-					idx_t hnode = tnode->heap_node_;
-					lock_guard_t lg(heap_locks_[hnode], std::try_to_lock);
+					idx_t heap_node = ht_node->heap_node_;
+					lock_guard_t lg(heap_locks_[heap_node], std::try_to_lock);
 					if (lg.owns_lock()) {
-						if (tnode->version_ != version || heap_[hnode].ht_node_ == nullptr)
+						//if (ht_node->version_ == version && heap_[heap_node].ht_node_ == ht_node)
+						if (ht_node->version_ != version || heap_[heap_node].ht_node_ == nullptr) //TODO Ensure there's no data races
 							return {};
-						if (heap_[hnode].ht_node_ == tnode) {
-							assert(hnode == tnode->heap_node_);
+						if (heap_[heap_node].ht_node_ == ht_node) {
+							assert(heap_node == ht_node->heap_node_);
 							return std::move(lg);
 						}
 					}
@@ -377,29 +372,30 @@ namespace numdb {
 				}
 			}
 
-			void bottomUpHeapify(HashTableNode* tnode, lock_guard_t node_lg, uint32_t version) {
-				assert(node_lg.owns_lock());
-				idx_t node = tnode->heap_node_;
+			void bottomUpHeapify(HashTableNode* ht_node, lock_guard_t heap_node_lg, uint32_t version) {
+				assert(heap_node_lg.owns_lock());
+				idx_t heap_node_idx = ht_node->heap_node_;
 				backoff_t backoff;
 				while (true) {
-					auto parent = heapParent(node);
-					if (parent == null_idx)
-						break;
-					lock_guard_t parent_lg(heap_locks_[parent], std::try_to_lock);
+					auto parent_idx = heapParent(heap_node_idx);
+					if (parent_idx == null_idx)
+						return;
+					lock_guard_t parent_lg(heap_locks_[parent_idx], std::try_to_lock);
 					if (parent_lg.owns_lock()) {
-						if (heap_[node].priority_ < heap_[parent].priority_)
-							swapHeapNodes(node, parent);
+						if (heap_[heap_node_idx].priority_ < heap_[parent_idx].priority_)
+							swapHeapNodes(heap_node_idx, parent_idx);
 						else
-							break;
+							return;
 					}
-					node_lg.unlock();
-					node = tnode->heap_node_;
+					heap_node_lg.unlock();
+					heap_node_idx = ht_node->heap_node_;
 
 					if (parent_lg.owns_lock())
-						node_lg = std::move(parent_lg);
+						heap_node_lg = std::move(parent_lg);
 					else {
-						node_lg = heapLockNode(tnode, version);
-						if (!node_lg.owns_lock())
+						backoff();
+						heap_node_lg = heapLockNode(ht_node, version);
+						if (!heap_node_lg.owns_lock())
 							return;
 					}
 				}
