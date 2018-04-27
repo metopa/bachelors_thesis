@@ -1,0 +1,3 @@
+[submodule "numdb"]
+	path = numdb
+	url = https://github.com/metopa/numdb.git
